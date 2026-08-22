@@ -199,7 +199,8 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
             val paddingDp = if (tier == WidgetSizeTier.COMPACT) 10 else 16
             val paddingPx = dpToPx(context, paddingDp)
-            views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, paddingPx, paddingPx, paddingPx)
+            val topPaddingPx = dpToPx(context, paddingDp + 8) // a bit more breathing room above the temperature/location line specifically
+            views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, topPaddingPx, paddingPx, paddingPx)
 
             // Both the top row's two columns and the forecast row's two cells split the
             // remaining width 50/50 with no gap between them (see widget_weather.xml) —
