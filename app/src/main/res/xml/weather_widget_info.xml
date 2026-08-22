@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
+  Fixed at exactly a 2x2 grid cell, not resizable at all — resizeMode="none"
+  drops the resize handles entirely, and minResizeWidth/Height equal minWidth/
+  Height so there's no direction it could shrink into even if a launcher
+  ignored resizeMode. minWidth/minHeight use Android's standard N-cell formula
+  (70*N - 30dp, N=2 -> 110dp) — the documented way to ask a launcher for
+  "exactly 2 columns by 2 rows," whatever that maps to in that launcher's own
+  grid math.
+
   updatePeriodMillis="0" — no OS timer at all. Weather can only change by
   making a network call, and the whole point of this widget is that it never
   does that on its own: it only refreshes when you tap it (see
-  WeatherWidgetProvider.kt). resizeMode="horizontal|vertical" plus the
-  min/minResize spread below is what makes the widget freely resizable on the
-  home screen; WeatherWidgetProvider.onAppWidgetOptionsChanged() reacts to
-  each resize by showing/hiding rows so smaller sizes don't clip content.
+  WeatherWidgetProvider.kt). WeatherWidgetProvider still reads the actual
+  reported size at render time and shrinks text/hides rows to fit it — see
+  applyResponsiveSizing() — since different launchers can still render a
+  "2x2" at different actual dp.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="180dp"
-    android:minHeight="190dp"
-    android:minResizeWidth="90dp"
-    android:minResizeHeight="70dp"
-    android:targetCellWidth="4"
-    android:targetCellHeight="3"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_weather"
-    android:resizeMode="horizontal|vertical"
+    android:resizeMode="none"
     android:widgetCategory="home_screen" />
