@@ -85,24 +85,35 @@ data class WeatherSnapshot(
 }
 
 /**
- * Holds the last successful fetch in SharedPreferences, so the widget/app
- * always have something to show immediately (even stale) instead of a blank
- * screen. Only a *successful* fetch ever overwrites what's stored here.
+ * Holds the last successful fetch per location in SharedPreferences, so the
+ * widget/app always have something to show immediately (even stale) instead
+ * of a blank screen. Only a *successful* fetch ever overwrites what's stored
+ * here. Keyed by locationId so the GPS "current location" tab and every
+ * searched-city tab each keep their own independent last-known reading —
+ * see CURRENT_LOCATION_ID and LocationStore.
  */
 object WeatherCache {
-    private const val PREFS_NAME = "weather"
-    private const val KEY_SNAPSHOT = "snapshot_json"
+    const val CURRENT_LOCATION_ID = "current"
 
-    fun save(context: Context, snapshot: WeatherSnapshot) {
+    private const val PREFS_NAME = "weather"
+    private const val KEY_SNAPSHOT_PREFIX = "snapshot_json_"
+
+    fun save(context: Context, locationId: String, snapshot: WeatherSnapshot) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
-            .putString(KEY_SNAPSHOT, snapshot.toJson())
+            .putString(KEY_SNAPSHOT_PREFIX + locationId, snapshot.toJson())
             .apply()
     }
 
-    fun read(context: Context): WeatherSnapshot? {
-        val json = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(KEY_SNAPSHOT, null)
-            ?: return null
+    fun read(context: Context, locationId: String): WeatherSnapshot? {
+        val json = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_SNAPSHOT_PREFIX + locationId, null) ?: return null
         return WeatherSnapshot.fromJson(json)
+    }
+
+    fun clear(context: Context, locationId: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+            .remove(KEY_SNAPSHOT_PREFIX + locationId)
+            .apply()
     }
 }
 

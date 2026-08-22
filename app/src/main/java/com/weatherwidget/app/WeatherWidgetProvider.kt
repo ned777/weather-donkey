@@ -46,7 +46,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         }
 
         private fun renderFromCache(context: Context, manager: AppWidgetManager, id: Int) {
-            val snapshot = WeatherCache.read(context)
+            val snapshot = WeatherCache.read(context, WeatherCache.CURRENT_LOCATION_ID)
             val statusText = when {
                 !LocationHelper.hasPermission(context) -> context.getString(R.string.widget_need_permission)
                 snapshot != null -> ""
@@ -68,7 +68,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 return
             }
 
-            val cached = WeatherCache.read(context)
+            val cached = WeatherCache.read(context, WeatherCache.CURRENT_LOCATION_ID)
             manager.updateAppWidget(id, buildViews(context, manager, id, cached, context.getString(R.string.widget_loading)))
 
             val location = LocationHelper.getLocationBlocking(context)
@@ -84,7 +84,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             }
 
             val snapshot = fetched.copy(cityName = GeocodeHelper.cityName(context, location))
-            WeatherCache.save(context, snapshot)
+            WeatherCache.save(context, WeatherCache.CURRENT_LOCATION_ID, snapshot)
             manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, ""))
         }
 

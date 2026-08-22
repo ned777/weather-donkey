@@ -8,6 +8,7 @@
   tap-only rule (see MainActivity.kt).
 -->
 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -44,7 +45,22 @@
                 android:textColor="@color/retro_white_dim"
                 android:textSize="13sp"
                 android:textStyle="italic"
-                android:layout_marginBottom="20dp" />
+                android:layout_marginBottom="16dp" />
+
+            <!-- One tab per location: "Current" (GPS, always first/default) + any searched
+                 cities the user has added, plus a "+" tab that opens the search dialog
+                 instead of ever actually being selected — see MainActivity.setupTabs(). -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                app:tabMode="scrollable"
+                app:tabGravity="start"
+                app:tabIndicatorColor="@color/retro_cyan"
+                app:tabSelectedTextColor="@color/retro_cyan"
+                app:tabTextColor="@color/retro_white_dim"
+                android:layout_marginBottom="16dp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -167,6 +183,17 @@
                     android:text="↓ Sunset --:--" />
 
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/removeLocationButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/remove_location"
+                android:textColor="@color/retro_pink"
+                android:textSize="12sp"
+                android:padding="6dp"
+                android:layout_marginBottom="4dp"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/updatedText"
