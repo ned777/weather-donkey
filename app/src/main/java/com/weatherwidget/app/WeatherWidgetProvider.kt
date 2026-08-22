@@ -14,11 +14,14 @@ import kotlin.math.roundToInt
 
 /**
  * How much room the widget currently has, driving both font sizes and which
- * rows show at all. Boundaries are in dp, taken from the smaller of the
- * widget's reported min width/height, so a widget that's short-and-wide or
- * tall-and-narrow is judged by its tightest dimension either way.
+ * rows show at all. Taken from the smaller of the widget's reported min
+ * width/height, so a widget that's short-and-wide or tall-and-narrow is
+ * judged by its tightest dimension either way. Only genuinely tiny sizes
+ * (roughly a 1x1/2x1 grid cell) drop to COMPACT — anything past that gets
+ * the full layout, since a half-empty "medium" tier just meant smaller text
+ * and a missing forecast row for no real reason.
  */
-private enum class WidgetSizeTier { COMPACT, REGULAR, EXPANDED }
+private enum class WidgetSizeTier { COMPACT, FULL }
 
 /**
  * The widget's brain. There is no periodic timer at all (see
@@ -137,39 +140,35 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         }
 
         /**
-         * Resizing the widget hides the less-essential rows (from the bottom up) AND
-         * shrinks every remaining font, instead of clipping/overlapping a size that was
-         * only ever laid out for the large default placement. At COMPACT (roughly a 2x2
-         * grid cell) this drops down to just the temperature, location, and condition
-         * icon — everything else is genuinely too tight to read at that size.
+         * COMPACT (roughly a 1x1/2x1 grid cell) drops to just the temperature,
+         * location, and condition icon — genuinely too little room for more. Every
+         * other size gets the FULL layout: today's high/low, sunrise/sunset (each on
+         * their own line), and the two-day forecast row filling the bottom half.
+         * Padding is always a visible constant margin either way, never near-zero.
          */
         private fun applyResponsiveSizing(context: Context, views: RemoteViews, manager: AppWidgetManager, id: Int, statusText: String) {
             val options = manager.getAppWidgetOptions(id)
             val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
             val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
-            val tier = when (minOf(minWidth, minHeight)) {
-                in 0 until 150 -> WidgetSizeTier.COMPACT
-                in 150 until 230 -> WidgetSizeTier.REGULAR
-                else -> WidgetSizeTier.EXPANDED
-            }
+            val tier = if (minOf(minWidth, minHeight) < 130) WidgetSizeTier.COMPACT else WidgetSizeTier.FULL
 
-            val paddingDp = when (tier) { WidgetSizeTier.COMPACT -> 8; WidgetSizeTier.REGULAR -> 10; WidgetSizeTier.EXPANDED -> 14 }
+            val paddingDp = if (tier == WidgetSizeTier.COMPACT) 10 else 16
             val paddingPx = dpToPx(context, paddingDp)
             views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, paddingPx, paddingPx, paddingPx)
 
-            setSp(views, R.id.tempText, when (tier) { WidgetSizeTier.COMPACT -> 28f; WidgetSizeTier.REGULAR -> 38f; WidgetSizeTier.EXPANDED -> 48f })
-            setSp(views, R.id.locationText, when (tier) { WidgetSizeTier.COMPACT -> 11f; WidgetSizeTier.REGULAR -> 13f; WidgetSizeTier.EXPANDED -> 15f })
-            setSp(views, R.id.conditionEmoji, when (tier) { WidgetSizeTier.COMPACT -> 13f; WidgetSizeTier.REGULAR -> 15f; WidgetSizeTier.EXPANDED -> 16f })
-            setSp(views, R.id.conditionText, when (tier) { WidgetSizeTier.REGULAR -> 12f; WidgetSizeTier.EXPANDED -> 14f; else -> 12f })
-            setSp(views, R.id.todayHighLowText, when (tier) { WidgetSizeTier.REGULAR -> 12f; WidgetSizeTier.EXPANDED -> 14f; else -> 12f })
-            setSp(views, R.id.sunriseText, if (tier == WidgetSizeTier.EXPANDED) 13f else 11f)
-            setSp(views, R.id.sunsetText, if (tier == WidgetSizeTier.EXPANDED) 13f else 11f)
-            setSp(views, R.id.updatedText, if (tier == WidgetSizeTier.EXPANDED) 10f else 8f)
+            setSp(views, R.id.tempText, if (tier == WidgetSizeTier.FULL) 56f else 30f)
+            setSp(views, R.id.locationText, if (tier == WidgetSizeTier.FULL) 16f else 11f)
+            setSp(views, R.id.conditionEmoji, if (tier == WidgetSizeTier.FULL) 18f else 13f)
+            setSp(views, R.id.conditionText, 15f)
+            setSp(views, R.id.todayHighLowText, 15f)
+            setSp(views, R.id.sunriseText, 14f)
+            setSp(views, R.id.sunsetText, 14f)
+            setSp(views, R.id.updatedText, 10f)
 
-            views.setViewVisibility(R.id.todayHighLowText, if (tier != WidgetSizeTier.COMPACT) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.conditionText, if (tier != WidgetSizeTier.COMPACT) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.sunRow, if (tier != WidgetSizeTier.COMPACT) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.forecastRow, if (tier == WidgetSizeTier.EXPANDED) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.todayHighLowText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.conditionText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.sunRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.forecastRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.updatedText, if (statusText.isNotEmpty()) View.VISIBLE else View.GONE)
         }
 

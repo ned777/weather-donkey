@@ -15,7 +15,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_background"
-    android:padding="10dp">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -108,12 +108,13 @@
 
             </LinearLayout>
 
+            <!-- Sunrise and sunset each get their own line — not a side-by-side row. -->
             <LinearLayout
                 android:id="@+id/sunRow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical"
+                android:gravity="end">
 
                 <TextView
                     android:id="@+id/sunriseText"
@@ -125,11 +126,6 @@
                     android:maxLines="1"
                     android:ellipsize="end"
                     android:text="↑ --:--" />
-
-                <TextView
-                    android:layout_width="8dp"
-                    android:layout_height="wrap_content"
-                    android:text="" />
 
                 <TextView
                     android:id="@+id/sunsetText"
@@ -155,7 +151,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="horizontal"
-        android:layout_marginTop="6dp">
+        android:layout_marginTop="4dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -171,14 +167,14 @@
                 android:includeFontPadding="false"
                 android:textColor="@color/retro_teal"
                 android:textStyle="bold"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:text="--" />
 
             <TextView
                 android:id="@+id/forecast1Emoji"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="18sp"
+                android:textSize="22sp"
                 android:text="" />
 
             <TextView
@@ -187,7 +183,7 @@
                 android:layout_height="wrap_content"
                 android:includeFontPadding="false"
                 android:textColor="@color/retro_white"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:text="--°/--°" />
 
         </LinearLayout>
@@ -206,14 +202,14 @@
                 android:includeFontPadding="false"
                 android:textColor="@color/retro_teal"
                 android:textStyle="bold"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:text="--" />
 
             <TextView
                 android:id="@+id/forecast2Emoji"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="18sp"
+                android:textSize="22sp"
                 android:text="" />
 
             <TextView
@@ -222,7 +218,7 @@
                 android:layout_height="wrap_content"
                 android:includeFontPadding="false"
                 android:textColor="@color/retro_white"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:text="--°/--°" />
 
         </LinearLayout>
