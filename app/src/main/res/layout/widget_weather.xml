@@ -52,6 +52,8 @@
                 android:textColor="@color/retro_white"
                 android:textSize="14sp"
                 android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:text="H:--°  L:--°" />
 
         </LinearLayout>
@@ -100,6 +102,8 @@
                     android:textColor="@color/retro_pink"
                     android:textSize="15sp"
                     android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:text="--" />
 
             </LinearLayout>
@@ -118,6 +122,8 @@
                     android:includeFontPadding="false"
                     android:textColor="@color/retro_white"
                     android:textSize="13sp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:text="↑ --:--" />
 
                 <TextView
@@ -132,6 +138,8 @@
                     android:includeFontPadding="false"
                     android:textColor="@color/retro_white"
                     android:textSize="13sp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:text="↓ --:--" />
 
             </LinearLayout>

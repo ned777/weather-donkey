@@ -7,8 +7,18 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
+import kotlin.math.roundToInt
+
+/**
+ * How much room the widget currently has, driving both font sizes and which
+ * rows show at all. Boundaries are in dp, taken from the smaller of the
+ * widget's reported min width/height, so a widget that's short-and-wide or
+ * tall-and-narrow is judged by its tightest dimension either way.
+ */
+private enum class WidgetSizeTier { COMPACT, REGULAR, EXPANDED }
 
 /**
  * The widget's brain. There is no periodic timer at all (see
@@ -121,21 +131,54 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 bindForecastCell(views, null, fahrenheit, R.id.forecast2Day, R.id.forecast2Emoji, R.id.forecast2HighLow)
             }
             views.setTextViewText(R.id.updatedText, statusText)
-
-            // Resizing the widget on the home screen hides the less essential rows
-            // (from the bottom up) instead of letting them clip/overlap.
-            val options = manager.getAppWidgetOptions(id)
-            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 220)
-            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 220)
-            views.setViewVisibility(R.id.todayHighLowText, if (minHeight >= 90) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.sunRow, if (minHeight >= 115) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.forecastRow, if (minHeight >= 165) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.conditionText, if (minWidth >= 110) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.updatedText, if (statusText.isNotEmpty() && minHeight >= 100) View.VISIBLE else View.GONE)
-
+            applyResponsiveSizing(context, views, manager, id, statusText)
             setClickIntent(context, views, id)
             return views
         }
+
+        /**
+         * Resizing the widget hides the less-essential rows (from the bottom up) AND
+         * shrinks every remaining font, instead of clipping/overlapping a size that was
+         * only ever laid out for the large default placement. At COMPACT (roughly a 2x2
+         * grid cell) this drops down to just the temperature, location, and condition
+         * icon — everything else is genuinely too tight to read at that size.
+         */
+        private fun applyResponsiveSizing(context: Context, views: RemoteViews, manager: AppWidgetManager, id: Int, statusText: String) {
+            val options = manager.getAppWidgetOptions(id)
+            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
+            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
+            val tier = when (minOf(minWidth, minHeight)) {
+                in 0 until 150 -> WidgetSizeTier.COMPACT
+                in 150 until 230 -> WidgetSizeTier.REGULAR
+                else -> WidgetSizeTier.EXPANDED
+            }
+
+            val paddingDp = when (tier) { WidgetSizeTier.COMPACT -> 8; WidgetSizeTier.REGULAR -> 10; WidgetSizeTier.EXPANDED -> 14 }
+            val paddingPx = dpToPx(context, paddingDp)
+            views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, paddingPx, paddingPx, paddingPx)
+
+            setSp(views, R.id.tempText, when (tier) { WidgetSizeTier.COMPACT -> 28f; WidgetSizeTier.REGULAR -> 38f; WidgetSizeTier.EXPANDED -> 48f })
+            setSp(views, R.id.locationText, when (tier) { WidgetSizeTier.COMPACT -> 11f; WidgetSizeTier.REGULAR -> 13f; WidgetSizeTier.EXPANDED -> 15f })
+            setSp(views, R.id.conditionEmoji, when (tier) { WidgetSizeTier.COMPACT -> 13f; WidgetSizeTier.REGULAR -> 15f; WidgetSizeTier.EXPANDED -> 16f })
+            setSp(views, R.id.conditionText, when (tier) { WidgetSizeTier.REGULAR -> 12f; WidgetSizeTier.EXPANDED -> 14f; else -> 12f })
+            setSp(views, R.id.todayHighLowText, when (tier) { WidgetSizeTier.REGULAR -> 12f; WidgetSizeTier.EXPANDED -> 14f; else -> 12f })
+            setSp(views, R.id.sunriseText, if (tier == WidgetSizeTier.EXPANDED) 13f else 11f)
+            setSp(views, R.id.sunsetText, if (tier == WidgetSizeTier.EXPANDED) 13f else 11f)
+            setSp(views, R.id.updatedText, if (tier == WidgetSizeTier.EXPANDED) 10f else 8f)
+
+            views.setViewVisibility(R.id.todayHighLowText, if (tier != WidgetSizeTier.COMPACT) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.conditionText, if (tier != WidgetSizeTier.COMPACT) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.sunRow, if (tier != WidgetSizeTier.COMPACT) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.forecastRow, if (tier == WidgetSizeTier.EXPANDED) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.updatedText, if (statusText.isNotEmpty()) View.VISIBLE else View.GONE)
+        }
+
+        private fun setSp(views: RemoteViews, viewId: Int, sizeSp: Float) {
+            views.setTextViewTextSize(viewId, TypedValue.COMPLEX_UNIT_SP, sizeSp)
+        }
+
+        private fun dpToPx(context: Context, dp: Int): Int =
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), context.resources.displayMetrics).roundToInt()
 
         private fun bindForecastCell(views: RemoteViews, day: DailyForecast?, fahrenheit: Boolean, dayId: Int, emojiId: Int, highLowId: Int) {
             if (day != null) {
