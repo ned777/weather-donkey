@@ -44,9 +44,8 @@ The widget itself only ever shows your current GPS location — that's the
 
 Weather comes from [Open-Meteo](https://open-meteo.com) — a free,
 open-source weather API. No API key, no account, no cloud relay of your
-own. It's not a government weather service; it's an independent open-data
-project. `weather_code` (the standard WMO weather code) is what gets
-bucketed into Sunny/Cloudy/Raining — see `WeatherCondition.kt`.
+own. `weather_code` (the standard WMO weather code) is what gets bucketed
+into Sunny/Cloudy/Raining — see `WeatherCondition.kt`.
 
 ## Location
 

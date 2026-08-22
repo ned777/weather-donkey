@@ -9,9 +9,7 @@ import java.util.Locale
 
 /**
  * Talks to Open-Meteo (https://open-meteo.com) — a free, open-source weather
- * API that needs no API key and no account. It's not a government weather
- * service: it's an independent open-data project that blends several
- * national weather models together, and its own API is what this app calls.
+ * API that needs no API key and no account.
  *
  * Always fetched/stored in Fahrenheit regardless of the user's display
  * preference — see WeatherFormat for the Celsius conversion used only at
