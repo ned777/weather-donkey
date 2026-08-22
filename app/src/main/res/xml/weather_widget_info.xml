@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  updatePeriodMillis="0" — no OS timer at all. Weather can only change by
+  making a network call, and the whole point of this widget is that it never
+  does that on its own: it only refreshes when you tap it (see
+  WeatherWidgetProvider.kt). resizeMode="horizontal|vertical" plus the
+  min/minResize spread below is what makes the widget freely resizable on the
+  home screen; WeatherWidgetProvider.onAppWidgetOptionsChanged() reacts to
+  each resize by showing/hiding rows so smaller sizes don't clip content.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="140dp"
+    android:minHeight="140dp"
+    android:minResizeWidth="90dp"
+    android:minResizeHeight="70dp"
+    android:targetCellWidth="3"
+    android:targetCellHeight="3"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/widget_weather"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />

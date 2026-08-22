@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MainActivity's screen: a full-size version of the same widget content, plus
+  a location-permission prompt when needed. Opened by tapping either the
+  widget (when permission hasn't been granted yet) or the app icon.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_title"
+        android:textColor="@color/retro_yellow"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        android:shadowColor="@color/retro_yellow"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="12"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_subtitle"
+        android:textColor="@color/retro_white_dim"
+        android:textSize="13sp"
+        android:textStyle="italic"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:id="@+id/locationText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/retro_teal"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.06"
+        android:text="@string/current_location" />
+
+    <TextView
+        android:id="@+id/tempText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/retro_cyan"
+        android:textSize="72sp"
+        android:textStyle="bold"
+        android:shadowColor="@color/retro_cyan"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="16"
+        android:text="--°" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="20dp">
+
+        <TextView
+            android:id="@+id/conditionEmoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:layout_marginEnd="6dp"
+            android:text="" />
+
+        <TextView
+            android:id="@+id/conditionText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/retro_pink"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:text="--" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/sunriseText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/retro_white"
+            android:textSize="15sp"
+            android:text="↑ Sunrise --:--" />
+
+        <TextView
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"
+            android:text="" />
+
+        <TextView
+            android:id="@+id/sunsetText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/retro_white"
+            android:textSize="15sp"
+            android:text="↓ Sunset --:--" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/updatedText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/retro_white_dim"
+        android:textSize="12sp"
+        android:layout_marginBottom="28dp"
+        android:text="" />
+
+    <Button
+        android:id="@+id/grantPermissionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/grant_location"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/refreshButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/refresh" />
+
+</LinearLayout>

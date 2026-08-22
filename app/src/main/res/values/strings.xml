@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Weather</string>
+    <string name="app_title">Weather</string>
+    <string name="app_subtitle">Created by Ned Nguyen</string>
+
+    <!-- Shown as the widget's own name in the OS's "add a widget" picker. -->
+    <string name="widget_label">Weather</string>
+
+    <string name="grant_location">Grant Location Access</string>
+    <string name="refresh">Refresh</string>
+    <string name="widget_need_permission">Tap to allow location</string>
+    <string name="widget_loading">Updating…</string>
+    <string name="widget_error_no_location">Couldn\'t get location — tap to retry</string>
+    <string name="widget_error_network">Couldn\'t reach weather service — tap to retry</string>
+    <string name="widget_tap_to_load">Tap Refresh to load weather</string>
+    <string name="location_permission_rationale">Weather needs your approximate location to show a local forecast. Nothing is shared beyond the weather lookup itself.</string>
+    <string name="current_location">Current Location</string>
+</resources>

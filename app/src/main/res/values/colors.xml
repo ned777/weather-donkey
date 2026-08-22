@@ -1,0 +1,20 @@
+<!--
+  Same retro dark-card language as the other widgets in this family (Today,
+  SysMon): black card, thin yellow outline, colored glow text. One accent per
+  role: teal for the location, cyan for the hero temperature, pink for the
+  condition (sunny/cloudy/raining), white for sunrise/sunset.
+-->
+<resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Flat near-black fill behind the widget and the app's own screen. -->
+    <color name="widget_bg">#0B0B10</color>
+
+    <color name="retro_yellow">#FFD400</color>
+    <color name="retro_cyan">#00D9FF</color>
+    <color name="retro_teal">#00E0B8</color>
+    <color name="retro_pink">#FF4F87</color>
+    <color name="retro_white">#F5F5FF</color>
+    <color name="retro_white_dim">#8C8C99</color>
+</resources>

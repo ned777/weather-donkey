@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The manifest is the "table of contents" for the whole app — Android reads this
+  file BEFORE running any of your code to find out what components (screens,
+  broadcast receivers) exist, what permissions the app needs, and how the OS
+  should launch/route to each piece.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      INTERNET             — required to call the Open-Meteo forecast API
+                              (see WeatherClient.kt).
+      ACCESS_NETWORK_STATE  — lets the app check general connectivity info.
+      ACCESS_COARSE_LOCATION — city/neighborhood-level location, resolved via
+                              the network provider. Deliberately NOT requesting
+                              ACCESS_FINE_LOCATION: a weather forecast doesn't
+                              need GPS-grade precision, so we ask for the least
+                              invasive permission that gets the job done.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.WeatherWidget">
+
+        <!--
+          The screen either widget opens when tapped: full weather detail,
+          plus the location-permission prompt when needed. The MAIN/LAUNCHER
+          intent-filter is also what makes this show up in the app drawer.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.WeatherWidget">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          The widget's brain (see WeatherWidgetProvider.kt). exported="false"
+          means only broadcasts from our own app process reach it directly
+          (the OS itself is always allowed to deliver the standard widget
+          lifecycle broadcasts regardless of this flag).
+            - APPWIDGET_UPDATE is the standard system broadcast.
+            - com.weatherwidget.app.ACTION_REFRESH is OUR OWN broadcast, fired
+              only when the widget is tapped — there is no periodic timer
+              (see weather_widget_info.xml: updatePeriodMillis="0").
+        -->
+        <receiver
+            android:name=".WeatherWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.weatherwidget.app.ACTION_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/weather_widget_info" />
+        </receiver>
+
+    </application>
+
+</manifest>
