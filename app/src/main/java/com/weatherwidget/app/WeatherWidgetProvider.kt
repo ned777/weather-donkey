@@ -25,8 +25,9 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
         /**
          * Repaints every placed widget from whatever's cached, with no network call —
-         * call this right after MainActivity does its own fetch, so any placed widget
-         * picks up that same data immediately instead of waiting for its own tap.
+         * call this right after MainActivity does its own fetch (or a unit toggle), so
+         * any placed widget picks up that same data immediately instead of waiting for
+         * its own tap.
          */
         fun repaintAllWidgets(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
@@ -38,7 +39,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val snapshot = WeatherCache.read(context)
             val statusText = when {
                 !LocationHelper.hasPermission(context) -> context.getString(R.string.widget_need_permission)
-                snapshot != null -> WeatherFormat.updatedAgoString(snapshot.fetchedAt)
+                snapshot != null -> ""
                 else -> context.getString(R.string.widget_tap_to_load)
             }
             manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, statusText))
@@ -74,7 +75,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
             val snapshot = fetched.copy(cityName = GeocodeHelper.cityName(context, location))
             WeatherCache.save(context, snapshot)
-            manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, WeatherFormat.updatedAgoString(snapshot.fetchedAt)))
+            manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, ""))
         }
 
         // e.g. "Updated 14m ago — Couldn't reach weather service — tap to retry", so a
@@ -87,41 +88,65 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         /**
          * Builds one fully-ready RemoteViews frame: content, size-based row
          * visibility, and the click PendingIntent (which itself depends on whether
-         * we have location permission yet — see setClickIntent below).
+         * we have location permission yet — see setClickIntent below). An empty
+         * statusText means "nothing wrong to report" and hides that line entirely.
          */
         private fun buildViews(context: Context, manager: AppWidgetManager, id: Int, snapshot: WeatherSnapshot?, statusText: String): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.widget_weather)
+            val fahrenheit = UnitPreference.isFahrenheit(context)
 
             if (snapshot != null) {
                 views.setTextViewText(R.id.locationText, snapshot.cityName ?: context.getString(R.string.current_location))
-                views.setTextViewText(R.id.tempText, WeatherFormat.tempString(snapshot.tempF))
+                views.setTextViewText(R.id.tempText, WeatherFormat.tempString(snapshot.tempF, fahrenheit))
+                views.setTextViewText(R.id.todayHighLowText, WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit))
                 val condition = WeatherCondition.fromCode(snapshot.code)
                 views.setTextViewText(R.id.conditionEmoji, condition.emoji(snapshot.isDay))
                 views.setTextViewText(R.id.conditionText, condition.label)
                 views.setTextViewText(R.id.sunriseText, "↑ ${WeatherFormat.clockTime(snapshot.sunrise)}")
                 views.setTextViewText(R.id.sunsetText, "↓ ${WeatherFormat.clockTime(snapshot.sunset)}")
+
+                val day1 = snapshot.forecast.getOrNull(0)
+                val day2 = snapshot.forecast.getOrNull(1)
+                bindForecastCell(views, day1, fahrenheit, R.id.forecast1Day, R.id.forecast1Emoji, R.id.forecast1HighLow)
+                bindForecastCell(views, day2, fahrenheit, R.id.forecast2Day, R.id.forecast2Emoji, R.id.forecast2HighLow)
             } else {
                 views.setTextViewText(R.id.locationText, context.getString(R.string.app_title))
                 views.setTextViewText(R.id.tempText, "--°")
+                views.setTextViewText(R.id.todayHighLowText, "H:--°  L:--°")
                 views.setTextViewText(R.id.conditionEmoji, "")
                 views.setTextViewText(R.id.conditionText, "--")
                 views.setTextViewText(R.id.sunriseText, "↑ --:--")
                 views.setTextViewText(R.id.sunsetText, "↓ --:--")
+                bindForecastCell(views, null, fahrenheit, R.id.forecast1Day, R.id.forecast1Emoji, R.id.forecast1HighLow)
+                bindForecastCell(views, null, fahrenheit, R.id.forecast2Day, R.id.forecast2Emoji, R.id.forecast2HighLow)
             }
             views.setTextViewText(R.id.updatedText, statusText)
 
-            // Resizing the widget on the home screen (down to as small as 2x1-ish)
-            // hides the less essential rows instead of letting them clip/overlap.
+            // Resizing the widget on the home screen hides the less essential rows
+            // (from the bottom up) instead of letting them clip/overlap.
             val options = manager.getAppWidgetOptions(id)
-            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180)
-            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
-            views.setViewVisibility(R.id.sunRow, if (minHeight >= 110) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.updatedText, if (minHeight >= 130) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.locationText, if (minHeight >= 90) View.VISIBLE else View.GONE)
+            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 220)
+            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 220)
+            views.setViewVisibility(R.id.todayHighLowText, if (minHeight >= 90) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.sunRow, if (minHeight >= 115) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.forecastRow, if (minHeight >= 165) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.conditionText, if (minWidth >= 110) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.updatedText, if (statusText.isNotEmpty() && minHeight >= 100) View.VISIBLE else View.GONE)
 
             setClickIntent(context, views, id)
             return views
+        }
+
+        private fun bindForecastCell(views: RemoteViews, day: DailyForecast?, fahrenheit: Boolean, dayId: Int, emojiId: Int, highLowId: Int) {
+            if (day != null) {
+                views.setTextViewText(dayId, day.dateLabel)
+                views.setTextViewText(emojiId, WeatherCondition.fromCode(day.code).emoji(true))
+                views.setTextViewText(highLowId, "${WeatherFormat.tempString(day.highF, fahrenheit)}/${WeatherFormat.tempString(day.lowF, fahrenheit)}")
+            } else {
+                views.setTextViewText(dayId, "--")
+                views.setTextViewText(emojiId, "")
+                views.setTextViewText(highLowId, "--°/--°")
+            }
         }
 
         // Tapping either fetches fresh weather (permission already granted) or opens

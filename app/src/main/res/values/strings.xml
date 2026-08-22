@@ -7,12 +7,15 @@
     <string name="widget_label">Weather</string>
 
     <string name="grant_location">Grant Location Access</string>
-    <string name="refresh">Refresh</string>
     <string name="widget_need_permission">Tap to allow location</string>
     <string name="widget_loading">Updating…</string>
     <string name="widget_error_no_location">Couldn\'t get location — tap to retry</string>
     <string name="widget_error_network">Couldn\'t reach weather service — tap to retry</string>
-    <string name="widget_tap_to_load">Tap Refresh to load weather</string>
+    <string name="widget_tap_to_load">Tap to load weather</string>
+    <string name="app_swipe_to_load">Swipe down to load weather</string>
     <string name="location_permission_rationale">Weather needs your approximate location to show a local forecast. Nothing is shared beyond the weather lookup itself.</string>
     <string name="current_location">Current Location</string>
+    <string name="unit_fahrenheit">°F</string>
+    <string name="unit_celsius">°C</string>
+    <string name="forecast_header">5-Day Forecast</string>
 </resources>

@@ -1,8 +1,21 @@
 package com.weatherwidget.app
 
 import android.content.Context
+import org.json.JSONArray
+import org.json.JSONObject
 
-/** One successful fetch's worth of weather data, everything the widget/app need to render. */
+/** One day's high/low/condition, used for the 5-day forecast list and the widget's 2-day row. */
+data class DailyForecast(
+    val dateLabel: String,
+    val highF: Double,
+    val lowF: Double,
+    val code: Int
+)
+
+/**
+ * One successful fetch's worth of weather data: today's current reading plus
+ * the next 5 days, everything the widget/app need to render.
+ */
 data class WeatherSnapshot(
     val cityName: String?,
     val tempF: Double,
@@ -10,50 +23,105 @@ data class WeatherSnapshot(
     val isDay: Boolean,
     val sunrise: String,
     val sunset: String,
+    val todayHighF: Double,
+    val todayLowF: Double,
+    val forecast: List<DailyForecast>, // tomorrow .. +5 days, oldest first
     val fetchedAt: Long
-)
+) {
+    fun toJson(): String {
+        val root = JSONObject()
+        root.put("city", cityName ?: JSONObject.NULL)
+        root.put("temp_f", tempF)
+        root.put("code", code)
+        root.put("is_day", isDay)
+        root.put("sunrise", sunrise)
+        root.put("sunset", sunset)
+        root.put("today_high_f", todayHighF)
+        root.put("today_low_f", todayLowF)
+        root.put("fetched_at", fetchedAt)
+        val forecastArray = JSONArray()
+        forecast.forEach { day ->
+            forecastArray.put(
+                JSONObject()
+                    .put("label", day.dateLabel)
+                    .put("high_f", day.highF)
+                    .put("low_f", day.lowF)
+                    .put("code", day.code)
+            )
+        }
+        root.put("forecast", forecastArray)
+        return root.toString()
+    }
+
+    companion object {
+        fun fromJson(json: String): WeatherSnapshot? = try {
+            val root = JSONObject(json)
+            val forecastArray = root.optJSONArray("forecast") ?: JSONArray()
+            val forecast = (0 until forecastArray.length()).map { i ->
+                val day = forecastArray.getJSONObject(i)
+                DailyForecast(
+                    dateLabel = day.getString("label"),
+                    highF = day.getDouble("high_f"),
+                    lowF = day.getDouble("low_f"),
+                    code = day.getInt("code")
+                )
+            }
+            WeatherSnapshot(
+                cityName = root.optString("city", "").takeUnless { it.isEmpty() },
+                tempF = root.getDouble("temp_f"),
+                code = root.getInt("code"),
+                isDay = root.getBoolean("is_day"),
+                sunrise = root.getString("sunrise"),
+                sunset = root.getString("sunset"),
+                todayHighF = root.getDouble("today_high_f"),
+                todayLowF = root.getDouble("today_low_f"),
+                forecast = forecast,
+                fetchedAt = root.getLong("fetched_at")
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+}
 
 /**
  * Holds the last successful fetch in SharedPreferences, so the widget/app
  * always have something to show immediately (even stale) instead of a blank
- * screen, and so a failed refresh can fall back to "last known" instead of
- * erasing everything. Same shape as SysMon's DeviceStatsCache: only a
- * *successful* fetch ever overwrites what's stored here.
+ * screen. Only a *successful* fetch ever overwrites what's stored here.
  */
 object WeatherCache {
     private const val PREFS_NAME = "weather"
-    private const val KEY_CITY = "city"
-    private const val KEY_TEMP_F = "temp_f"
-    private const val KEY_CODE = "code"
-    private const val KEY_IS_DAY = "is_day"
-    private const val KEY_SUNRISE = "sunrise"
-    private const val KEY_SUNSET = "sunset"
-    private const val KEY_FETCHED_AT = "fetched_at"
+    private const val KEY_SNAPSHOT = "snapshot_json"
 
     fun save(context: Context, snapshot: WeatherSnapshot) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
-            .putString(KEY_CITY, snapshot.cityName)
-            .putFloat(KEY_TEMP_F, snapshot.tempF.toFloat())
-            .putInt(KEY_CODE, snapshot.code)
-            .putBoolean(KEY_IS_DAY, snapshot.isDay)
-            .putString(KEY_SUNRISE, snapshot.sunrise)
-            .putString(KEY_SUNSET, snapshot.sunset)
-            .putLong(KEY_FETCHED_AT, snapshot.fetchedAt)
+            .putString(KEY_SNAPSHOT, snapshot.toJson())
             .apply()
     }
 
     fun read(context: Context): WeatherSnapshot? {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val fetchedAt = prefs.getLong(KEY_FETCHED_AT, 0L)
-        if (fetchedAt == 0L) return null
-        return WeatherSnapshot(
-            cityName = prefs.getString(KEY_CITY, null),
-            tempF = prefs.getFloat(KEY_TEMP_F, 0f).toDouble(),
-            code = prefs.getInt(KEY_CODE, 0),
-            isDay = prefs.getBoolean(KEY_IS_DAY, true),
-            sunrise = prefs.getString(KEY_SUNRISE, "") ?: "",
-            sunset = prefs.getString(KEY_SUNSET, "") ?: "",
-            fetchedAt = fetchedAt
-        )
+        val json = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(KEY_SNAPSHOT, null)
+            ?: return null
+        return WeatherSnapshot.fromJson(json)
+    }
+}
+
+/**
+ * The user's Fahrenheit/Celsius display choice. Purely a display setting —
+ * switching it never triggers a network fetch, it just reformats whatever's
+ * already cached (see MainActivity/WeatherWidgetProvider). Stored in the
+ * same prefs file as the cache since it's the same small "weather" concern.
+ */
+object UnitPreference {
+    private const val PREFS_NAME = "weather"
+    private const val KEY_FAHRENHEIT = "unit_fahrenheit"
+
+    fun isFahrenheit(context: Context): Boolean =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(KEY_FAHRENHEIT, true)
+
+    fun setFahrenheit(context: Context, fahrenheit: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_FAHRENHEIT, fahrenheit)
+            .apply()
     }
 }

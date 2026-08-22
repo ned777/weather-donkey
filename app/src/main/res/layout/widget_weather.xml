@@ -1,118 +1,237 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Every row here is toggled visible/gone in code (WeatherWidgetProvider —
-  applyResponsiveVisibility()) based on the widget's current on-screen size,
-  which is how a single layout stays legible whether it's resized down to a
-  small square or stretched out large. All text is set in code; nothing here
-  ever changes except through that.
+  Layout: big current temp top-left, location/condition/sunrise-sunset
+  stacked tight (no vertical gap) top-right, today's high/low right under
+  the big temp, and a two-day forecast row filling the bottom half. Every
+  row below the top row is toggled visible/gone in code
+  (WeatherWidgetProvider — buildViews()) based on the widget's current
+  on-screen size, which is how this stays legible resized all the way down
+  to a small square. All text is set in code; nothing here ever changes
+  except through that.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/weatherWidgetRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
     android:background="@drawable/widget_background"
     android:padding="10dp">
 
-    <TextView
-        android:id="@+id/locationText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:includeFontPadding="false"
-        android:textColor="@color/retro_teal"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.06"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:text="@string/current_location" />
-
-    <TextView
-        android:id="@+id/tempText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:includeFontPadding="false"
-        android:textColor="@color/retro_cyan"
-        android:textSize="48sp"
-        android:textStyle="bold"
-        android:shadowColor="@color/retro_cyan"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="14"
-        android:text="--°" />
-
     <LinearLayout
-        android:id="@+id/conditionRow"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="2dp">
+        android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/conditionEmoji"
-            android:layout_width="wrap_content"
+        <!-- Top-left: big current temperature, today's high/low right under it. -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:layout_marginEnd="4dp"
-            android:text="" />
+            android:orientation="vertical"
+            android:gravity="start">
 
-        <TextView
-            android:id="@+id/conditionText"
-            android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/tempText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_cyan"
+                android:textSize="52sp"
+                android:textStyle="bold"
+                android:shadowColor="@color/retro_cyan"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="14"
+                android:text="--°" />
+
+            <TextView
+                android:id="@+id/todayHighLowText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:text="H:--°  L:--°" />
+
+        </LinearLayout>
+
+        <!-- Top-right: location, then condition, then sunrise/sunset — one line each, no gap. -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:textColor="@color/retro_pink"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:text="--" />
+            android:orientation="vertical"
+            android:gravity="end">
+
+            <TextView
+                android:id="@+id/locationText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_teal"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.04"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="@string/current_location" />
+
+            <LinearLayout
+                android:id="@+id/conditionRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/conditionEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:layout_marginEnd="4dp"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/conditionText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/retro_pink"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="--" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/sunRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/sunriseText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/retro_white"
+                    android:textSize="13sp"
+                    android:text="↑ --:--" />
+
+                <TextView
+                    android:layout_width="8dp"
+                    android:layout_height="wrap_content"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/sunsetText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/retro_white"
+                    android:textSize="13sp"
+                    android:text="↓ --:--" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 
+    <!-- Bottom half: the next two days, high/low. -->
     <LinearLayout
-        android:id="@+id/sunRow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/forecastRow"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="6dp">
 
-        <TextView
-            android:id="@+id/sunriseText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:textColor="@color/retro_white"
-            android:textSize="12sp"
-            android:text="↑ --:--" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <TextView
-            android:layout_width="12dp"
-            android:layout_height="wrap_content"
-            android:text="" />
+            <TextView
+                android:id="@+id/forecast1Day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_teal"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:text="--" />
 
-        <TextView
-            android:id="@+id/sunsetText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:textColor="@color/retro_white"
-            android:textSize="12sp"
-            android:text="↓ --:--" />
+            <TextView
+                android:id="@+id/forecast1Emoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/forecast1HighLow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_white"
+                android:textSize="12sp"
+                android:text="--°/--°" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/forecast2Day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_teal"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:text="--" />
+
+            <TextView
+                android:id="@+id/forecast2Emoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/forecast2HighLow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_white"
+                android:textSize="12sp"
+                android:text="--°/--°" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
+    <!-- Only visible when there's an actual status message (permission prompt, loading, error) — hidden once real data is showing cleanly. -->
     <TextView
         android:id="@+id/updatedText"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
         android:textColor="@color/retro_white_dim"
         android:textSize="10sp"
-        android:layout_marginTop="6dp"
         android:maxLines="1"
         android:ellipsize="end"
-        android:text="@string/widget_need_permission" />
+        android:visibility="gone"
+        android:text="" />
 
 </LinearLayout>

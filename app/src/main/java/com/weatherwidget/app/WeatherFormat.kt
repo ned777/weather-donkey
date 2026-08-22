@@ -15,7 +15,14 @@ object WeatherFormat {
         "--:--"
     }
 
-    fun tempString(tempF: Double): String = "${Math.round(tempF)}°"
+    /** Everything is fetched/stored in Fahrenheit; this is the only place a Celsius view ever gets computed. */
+    fun tempString(tempF: Double, fahrenheit: Boolean): String {
+        val value = if (fahrenheit) tempF else (tempF - 32.0) * 5.0 / 9.0
+        return "${Math.round(value)}°"
+    }
+
+    fun highLowString(highF: Double, lowF: Double, fahrenheit: Boolean): String =
+        "H:${tempString(highF, fahrenheit)}  L:${tempString(lowF, fahrenheit)}"
 
     /** "Updated just now" / "Updated 14m ago" / "Updated 3h ago" — no need to pull in a date library for this. */
     fun updatedAgoString(fetchedAt: Long, nowMillis: Long = System.currentTimeMillis()): String {
