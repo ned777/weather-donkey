@@ -1,4 +1,4 @@
-# Weather
+# Weather Donkey
 
 A fixed-size (2×2, not resizable) Android home-screen widget for a glance at
 the weather right where you are. **Tap it to update — there's no background
@@ -13,7 +13,7 @@ moment you touch it.
   H:78° L:61°       Sunny
   Rain: 10%       ↑ 6:32 AM
                   ↓ 7:45 PM
-  ────────────────────────
+
    WED           THU
   75/58         70/55
   SUNNY         WINDY
@@ -30,29 +30,45 @@ moment you touch it.
   **Sunny**, **Partial**, **Cloudy**, **Windy**, **Rainy**, **Snowy**
 - Rain chance (today's daily max — Open-Meteo has no separate "current"
   precipitation-probability field), and sunrise/sunset in local clock time
-- A 1px white divider, then the next two days' high/low, condition (day
-  label in caps), and rain chance, filling the bottom half
+- The next two days' high/low, condition (day label in caps), and rain
+  chance, filling the bottom half
 - A status line at the very bottom: **"Updating…"** while a tap's fetch is
   in flight, otherwise the last-updated time, date, and timezone
 
 Text sizes are all measured against the widget's actual rendered size and
 shrunk to fit if needed, so nothing wraps or gets clipped.
 
+## Each widget can watch a different location
+
+Dragging a new widget onto the home screen shows a config screen first —
+pick **Current** (GPS) or any city already added as a tab in the app. Each
+widget instance remembers its own choice independently (`WidgetLocationBinding`,
+keyed per widget id), reusing the same per-location cache the app's tabs
+populate. A widget bound to a searched city needs no location permission at
+all — only a "Current"-bound widget ever does. Tapping one widget only ever
+refreshes that one widget, never every placed widget.
+
 ## The app: multiple locations, unit toggle, 5-day forecast, flat icons
 
-The widget itself only ever shows your current GPS location — that's the
-"Current" tab, and it's always the default. Opening the app gets you more:
+The app mirrors the widget's own tab-per-location model, plus more detail:
 
 - **Other locations**: tap **+** in the tab strip, search a city name or
   ZIP code (Android's on-device Geocoder — no key, no second API), and pick
   a match to add it as its own tab. Each tab keeps its own independently
   cached weather and its own independent refresh.
+- **Huge, outlined, auto-sizing temperature** — single-digit readings render
+  as large as the screen allows; a double-digit (or negative) reading
+  shrinks itself down just enough to keep fitting the width, via Android's
+  built-in text autosizing. The outline effect (`OutlinedTextView.kt`) draws
+  the glyph twice — stroked, then filled — since there's no built-in
+  "outlined text" attribute.
 - **°F / °C toggle** — a pure display switch. Flipping it reformats
   whatever's already cached instantly; it never triggers a new fetch.
 - **5-day forecast** — today's high/low plus the next 5 days, each with its
   own condition and a flat vector icon (`res/drawable/ic_weather_*.xml`) —
   no emoji, plain solid-color shapes in the app's own retro palette. Rain
-  chance sits stacked under the high/low on the right side of each row.
+  chance and wind speed sit stacked under the high/low on the right side of
+  each row, with a thin divider between rows.
 - **Pull down to refresh** — no separate Refresh button; swipe down on any
   tab to fetch that tab's location.
 
@@ -91,15 +107,18 @@ granting permission for the first time, on the Current tab) does.
 
 ```
 app/src/main/java/com/weatherwidget/app/
-  WeatherWidgetProvider.kt   — AppWidgetProvider: tap-to-refresh, fit-to-size rendering
-  MainActivity.kt             — tabs, search dialog, unit toggle, 5-day forecast, pull-to-refresh
-  LocationStore.kt             — SharedPreferences-backed list of searched/added cities
-  LocationHelper.kt             — plain android.location.LocationManager fix (no Play Services)
-  WeatherClient.kt                — HttpURLConnection call to Open-Meteo + JSON parsing
-  WeatherCondition.kt              — WMO weather code + wind speed → the six condition states
-  WeatherCache.kt                   — SharedPreferences: last successful fetch, per location
-  GeocodeHelper.kt                   — on-device Geocoder: lat/lon → city name, and city/ZIP → matches
-  WeatherFormat.kt                    — shared temp/time/"Updated Xm ago" formatting
+  WeatherWidgetProvider.kt     — AppWidgetProvider: tap-to-refresh, fit-to-size rendering
+  WeatherWidgetConfigActivity.kt — per-widget location picker, shown when adding a widget
+  WidgetLocationBinding.kt        — SharedPreferences: which location each widget id watches
+  MainActivity.kt                   — tabs, search dialog, unit toggle, 5-day forecast, pull-to-refresh
+  OutlinedTextView.kt                — stroke+fill "outlined" TextView, used for the app's temp number
+  LocationStore.kt                    — SharedPreferences-backed list of searched/added cities
+  LocationHelper.kt                    — plain android.location.LocationManager fix (no Play Services)
+  WeatherClient.kt                      — HttpURLConnection call to Open-Meteo + JSON parsing
+  WeatherCondition.kt                    — WMO weather code + wind speed → the six condition states
+  WeatherCache.kt                         — SharedPreferences: last successful fetch, per location
+  GeocodeHelper.kt                         — on-device Geocoder: lat/lon → city name, and city/ZIP → matches
+  WeatherFormat.kt                          — shared temp/time/"Updated Xm ago" formatting
 ```
 
 ## Building
@@ -109,5 +128,6 @@ export JAVA_HOME=<path to a JDK 17>
 ./gradlew installDebug     # installs over adb (USB or wireless debugging)
 ```
 
-Then long-press your home screen → Widgets → **Weather** and drag it on.
-It only comes in one size (2×2) — there's nothing to resize.
+Then long-press your home screen → Widgets → **Weather Donkey** and drag it
+on — you'll be asked which location it should watch. It only comes in one
+size (2×2) — there's nothing to resize.

@@ -1,10 +1,10 @@
 <resources>
-    <string name="app_name">Weather</string>
-    <string name="app_title">Weather</string>
+    <string name="app_name">Weather Donkey</string>
+    <string name="app_title">Weather Donkey</string>
     <string name="app_subtitle">Created by Ned Nguyen</string>
 
     <!-- Shown as the widget's own name in the OS's "add a widget" picker. -->
-    <string name="widget_label">Weather</string>
+    <string name="widget_label">Weather Donkey</string>
 
     <string name="grant_location">Grant Location Access</string>
     <string name="widget_need_permission">Tap to allow location</string>
