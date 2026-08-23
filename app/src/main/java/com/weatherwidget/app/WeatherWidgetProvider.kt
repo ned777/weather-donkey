@@ -257,11 +257,13 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val minWidthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
             val tier = if (minOf(minWidthDp, minHeightDp) < 130) WidgetSizeTier.COMPACT else WidgetSizeTier.FULL
 
-            // Symmetric top/bottom margin — the city name up top and the forecast's last
-            // line at the bottom sit the same distance from their respective edges.
+            // Sides/bottom keep the original margin; the top is trimmed down a bit
+            // smaller by request, so the city name sits closer to the top edge.
             val paddingDp = if (tier == WidgetSizeTier.COMPACT) 10 else 16
+            val topPaddingDp = if (tier == WidgetSizeTier.COMPACT) 6 else 10
             val paddingPx = dpToPx(context, paddingDp)
-            views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, paddingPx, paddingPx, paddingPx)
+            val topPaddingPx = dpToPx(context, topPaddingDp)
+            views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, topPaddingPx, paddingPx, paddingPx)
 
             // Both the top row's two columns and the forecast row's two cells split the
             // remaining width 50/50 with no gap between them (see widget_weather.xml) —
@@ -345,7 +347,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 val totalHeightPx = dpToPx(context, minHeightDp).toFloat()
 
                 val forecastAvailableHeightPx = (
-                    totalHeightPx - 2 * paddingPx - cityHeightPx -
+                    totalHeightPx - topPaddingPx - paddingPx - cityHeightPx -
                         dpToPx(context, 2) - topRowHeightPx -
                         dpToPx(context, 8) - dpToPx(context, 4) - updatedHeightPx
                     ).coerceAtLeast(0f)
