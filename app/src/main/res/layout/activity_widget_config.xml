@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shown right after dragging a new Weather widget onto the home screen —
+  see WeatherWidgetConfigActivity.kt. Just a title plus a plain vertical list
+  of tappable location rows (populated in code from "Current" + LocationStore).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/widget_bg"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/choose_widget_location"
+        android:textColor="@color/retro_yellow"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.06"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:id="@+id/configLocationList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+</LinearLayout>

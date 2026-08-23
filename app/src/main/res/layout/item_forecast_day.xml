@@ -1,65 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One row of MainActivity's 5-day forecast list — inflated and filled in by MainActivity.populateForecast(). -->
+<!-- One row of MainActivity's 5-day forecast list — inflated and filled in by MainActivity.populateForecast().
+     A regular Activity layout (not a widget's RemoteViews), so a plain <View> divider is fine here. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/dayLabel"
-        android:layout_width="52dp"
-        android:layout_height="wrap_content"
-        android:textColor="@color/retro_teal"
-        android:textStyle="bold"
-        android:textSize="15sp"
-        android:text="--" />
-
-    <ImageView
-        android:id="@+id/conditionIcon"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginEnd="6dp"
-        android:src="@drawable/ic_weather_cloudy" />
-
-    <TextView
-        android:id="@+id/conditionText"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"
-        android:textColor="@color/retro_pink"
-        android:textSize="13sp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:text="--" />
-
-    <!-- High/low and rain chance stacked vertically on the right, not side by side. -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="end">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
         <TextView
-            android:id="@+id/highLowText"
-            android:layout_width="wrap_content"
+            android:id="@+id/dayLabel"
+            android:layout_width="58dp"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:textColor="@color/retro_white"
+            android:textColor="@color/retro_teal"
+            android:textStyle="bold"
+            android:textSize="17sp"
+            android:text="--" />
+
+        <ImageView
+            android:id="@+id/conditionIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_weather_cloudy" />
+
+        <TextView
+            android:id="@+id/conditionText"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textColor="@color/retro_pink"
             android:textSize="15sp"
-            android:text="H:--°  L:--°" />
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="--" />
 
-        <TextView
-            android:id="@+id/rainText"
+        <!-- High/low, rain chance, and wind stacked vertically on the right, not side by side. -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:textColor="@color/retro_white_dim"
-            android:textSize="12sp"
-            android:text="Rain: --%" />
+            android:orientation="vertical"
+            android:gravity="end">
+
+            <TextView
+                android:id="@+id/highLowText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textColor="@color/retro_white"
+                android:textSize="17sp"
+                android:text="H:--°  L:--°" />
+
+            <TextView
+                android:id="@+id/rainText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textColor="@color/retro_white_dim"
+                android:textSize="13sp"
+                android:text="Rain: --%" />
+
+            <TextView
+                android:id="@+id/windText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textColor="@color/retro_white_dim"
+                android:textSize="13sp"
+                android:text="Wind: --mph" />
+
+        </LinearLayout>
 
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/retro_white" />
 
 </LinearLayout>

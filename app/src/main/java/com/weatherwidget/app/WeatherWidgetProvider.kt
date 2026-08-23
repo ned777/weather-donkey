@@ -50,47 +50,78 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             ids.forEach { renderFromCache(context, manager, it) }
         }
 
+        /** Called by WeatherWidgetConfigActivity right after binding a location to a brand-new widget id. */
+        fun renderConfiguredWidget(context: Context, appWidgetId: Int) {
+            renderFromCache(context, AppWidgetManager.getInstance(context), appWidgetId)
+        }
+
         private fun renderFromCache(context: Context, manager: AppWidgetManager, id: Int) {
-            val snapshot = WeatherCache.read(context, WeatherCache.CURRENT_LOCATION_ID)
+            val locationId = WidgetLocationBinding.get(context, id)
+            val needsPermission = locationId == WeatherCache.CURRENT_LOCATION_ID && !LocationHelper.hasPermission(context)
+            val snapshot = WeatherCache.read(context, locationId)
             val statusText = when {
-                !LocationHelper.hasPermission(context) -> context.getString(R.string.widget_need_permission)
+                needsPermission -> context.getString(R.string.widget_need_permission)
                 snapshot != null -> WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)
                 else -> context.getString(R.string.widget_tap_to_load)
             }
-            manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, statusText))
+            manager.updateAppWidget(id, buildViews(context, manager, id, locationId, snapshot, statusText))
         }
 
         /**
-         * The actual fetch: a location fix, then Open-Meteo, saving to cache only on
-         * success. Always called from a background Thread (see onReceive) — never the
-         * main thread, since both the location fix and the HTTP call can block for
-         * seconds. Pushes an "Updating…" frame immediately so the tap feels responsive
-         * even before the network call has finished.
+         * The actual fetch: for the "current" binding, a GPS location fix then
+         * Open-Meteo; for a widget bound to a searched city, straight to Open-Meteo
+         * using that city's fixed coordinates — no location permission needed at all
+         * for that case. Always called from a background Thread (see onReceive) —
+         * never the main thread. Pushes an "Updating…" frame immediately so the tap
+         * feels responsive even before the network call has finished.
          */
         private fun performRefresh(context: Context, manager: AppWidgetManager, id: Int) {
-            if (!LocationHelper.hasPermission(context)) {
-                renderFromCache(context, manager, id)
-                return
+            val locationId = WidgetLocationBinding.get(context, id)
+
+            if (locationId == WeatherCache.CURRENT_LOCATION_ID) {
+                if (!LocationHelper.hasPermission(context)) {
+                    renderFromCache(context, manager, id)
+                    return
+                }
+                val cached = WeatherCache.read(context, locationId)
+                manager.updateAppWidget(id, buildViews(context, manager, id, locationId, cached, context.getString(R.string.widget_loading)))
+
+                val location = LocationHelper.getLocationBlocking(context)
+                if (location == null) {
+                    manager.updateAppWidget(id, buildViews(context, manager, id, locationId, cached, statusWithFallback(context, cached, R.string.widget_error_no_location)))
+                    return
+                }
+
+                val fetched = WeatherClient.fetchWeather(location.latitude, location.longitude)
+                if (fetched == null) {
+                    manager.updateAppWidget(id, buildViews(context, manager, id, locationId, cached, statusWithFallback(context, cached, R.string.widget_error_network)))
+                    return
+                }
+
+                val snapshot = fetched.copy(cityName = GeocodeHelper.cityName(context, location))
+                WeatherCache.save(context, locationId, snapshot)
+                manager.updateAppWidget(id, buildViews(context, manager, id, locationId, snapshot, WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)))
+            } else {
+                val saved = LocationStore.list(context).find { it.id == locationId }
+                if (saved == null) {
+                    // The location this widget was bound to got removed from the app
+                    // since — fall back to whatever's cached (nothing) rather than crash.
+                    renderFromCache(context, manager, id)
+                    return
+                }
+                val cached = WeatherCache.read(context, locationId)
+                manager.updateAppWidget(id, buildViews(context, manager, id, locationId, cached, context.getString(R.string.widget_loading)))
+
+                val fetched = WeatherClient.fetchWeather(saved.lat, saved.lon)
+                if (fetched == null) {
+                    manager.updateAppWidget(id, buildViews(context, manager, id, locationId, cached, statusWithFallback(context, cached, R.string.widget_error_network)))
+                    return
+                }
+
+                val snapshot = fetched.copy(cityName = saved.displayName)
+                WeatherCache.save(context, locationId, snapshot)
+                manager.updateAppWidget(id, buildViews(context, manager, id, locationId, snapshot, WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)))
             }
-
-            val cached = WeatherCache.read(context, WeatherCache.CURRENT_LOCATION_ID)
-            manager.updateAppWidget(id, buildViews(context, manager, id, cached, context.getString(R.string.widget_loading)))
-
-            val location = LocationHelper.getLocationBlocking(context)
-            if (location == null) {
-                manager.updateAppWidget(id, buildViews(context, manager, id, cached, statusWithFallback(context, cached, R.string.widget_error_no_location)))
-                return
-            }
-
-            val fetched = WeatherClient.fetchWeather(location.latitude, location.longitude)
-            if (fetched == null) {
-                manager.updateAppWidget(id, buildViews(context, manager, id, cached, statusWithFallback(context, cached, R.string.widget_error_network)))
-                return
-            }
-
-            val snapshot = fetched.copy(cityName = GeocodeHelper.cityName(context, location))
-            WeatherCache.save(context, WeatherCache.CURRENT_LOCATION_ID, snapshot)
-            manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)))
         }
 
         // e.g. "3:45 PM · Aug 23 · PDT — Couldn't reach weather service — tap to retry", so a
@@ -106,7 +137,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
          * we have location permission yet — see setClickIntent below). An empty
          * statusText means "nothing wrong to report" and hides that line entirely.
          */
-        private fun buildViews(context: Context, manager: AppWidgetManager, id: Int, snapshot: WeatherSnapshot?, statusText: String): RemoteViews {
+        private fun buildViews(context: Context, manager: AppWidgetManager, id: Int, locationId: String, snapshot: WeatherSnapshot?, statusText: String): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.widget_weather)
             val fahrenheit = UnitPreference.isFahrenheit(context)
 
@@ -131,7 +162,16 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 day1 = snapshot.forecast.getOrNull(0)
                 day2 = snapshot.forecast.getOrNull(1)
             } else {
-                cityStr = context.getString(R.string.app_title)
+                // No fetch has happened yet for this widget — still show which location
+                // it's bound to (helpful right after configuring it) if it's not "current".
+                cityStr = widgetCityLabel(
+                    if (locationId == WeatherCache.CURRENT_LOCATION_ID) {
+                        context.getString(R.string.current_location)
+                    } else {
+                        LocationStore.list(context).find { it.id == locationId }?.displayName
+                            ?: context.getString(R.string.current_location)
+                    }
+                )
                 tempStr = "--°"
                 todayHighLowStr = "H:--°  L:--°"
                 todayRainStr = "Rain: --%"
@@ -175,7 +215,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 forecast1Day, forecast2Day, forecast1HighLow, forecast2HighLow,
                 forecast1Condition, forecast2Condition, forecast1Rain, forecast2Rain
             )
-            setClickIntent(context, views, id)
+            setClickIntent(context, views, id, locationId)
             return views
         }
 
@@ -217,10 +257,11 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val minWidthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
             val tier = if (minOf(minWidthDp, minHeightDp) < 130) WidgetSizeTier.COMPACT else WidgetSizeTier.FULL
 
+            // Symmetric top/bottom margin — the city name up top and the forecast's last
+            // line at the bottom sit the same distance from their respective edges.
             val paddingDp = if (tier == WidgetSizeTier.COMPACT) 10 else 16
             val paddingPx = dpToPx(context, paddingDp)
-            val topPaddingPx = dpToPx(context, paddingDp + 8) // a bit more breathing room above the city name specifically
-            views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, topPaddingPx, paddingPx, paddingPx)
+            views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, paddingPx, paddingPx, paddingPx)
 
             // Both the top row's two columns and the forecast row's two cells split the
             // remaining width 50/50 with no gap between them (see widget_weather.xml) —
@@ -233,10 +274,25 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val tempMaxSp = if (tier == WidgetSizeTier.FULL) 56f else 30f
             setSp(views, R.id.tempText, fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true))
 
-            // "TODAY" is short and basically never needs to shrink, but the city name at
-            // top must match its size exactly (by request) rather than being fit
-            // independently — so compute todaySp first and reuse it for cityText.
-            val todaySp = fitWidthSp(context, todayLabel, halfColumnPx, if (tier == WidgetSizeTier.FULL) 16f else 11f, 9f, bold = true)
+            // Day label and condition word (forecastLabelSp) is computed up front — at
+            // FULL tier, "TODAY" and the city name both match it exactly (by request),
+            // rather than "TODAY" being fit independently.
+            val forecastLabelSp = if (tier == WidgetSizeTier.FULL) {
+                minOf(
+                    fitWidthSp(context, forecast1Day, halfColumnPx, 13f, 8f, bold = true),
+                    fitWidthSp(context, forecast2Day, halfColumnPx, 13f, 8f, bold = true),
+                    fitWidthSp(context, forecast1Condition, halfColumnPx, 13f, 8f, bold = false),
+                    fitWidthSp(context, forecast2Condition, halfColumnPx, 13f, 8f, bold = false)
+                )
+            } else {
+                0f
+            }
+
+            val todaySp = if (tier == WidgetSizeTier.FULL) {
+                forecastLabelSp
+            } else {
+                fitWidthSp(context, todayLabel, halfColumnPx, 11f, 9f, bold = true)
+            }
             setSp(views, R.id.todayLabelText, todaySp)
             setSp(views, R.id.cityText, todaySp)
 
@@ -258,15 +314,6 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 )
                 setSp(views, R.id.forecast1HighLow, forecastHighLowSp)
                 setSp(views, R.id.forecast2HighLow, forecastHighLowSp)
-
-                // Day label and condition word share one size (by request) — the smallest
-                // needed across all four strings, so every cell lines up the same way.
-                val forecastLabelSp = minOf(
-                    fitWidthSp(context, forecast1Day, halfColumnPx, 13f, 8f, bold = true),
-                    fitWidthSp(context, forecast2Day, halfColumnPx, 13f, 8f, bold = true),
-                    fitWidthSp(context, forecast1Condition, halfColumnPx, 13f, 8f, bold = false),
-                    fitWidthSp(context, forecast2Condition, halfColumnPx, 13f, 8f, bold = false)
-                )
                 setSp(views, R.id.forecast1Day, forecastLabelSp)
                 setSp(views, R.id.forecast2Day, forecastLabelSp)
                 setSp(views, R.id.forecast1Condition, forecastLabelSp)
@@ -315,14 +362,19 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             return (sizeSp * (maxWidthPx / measured)).coerceAtLeast(minSp)
         }
 
-        // Tapping either fetches fresh weather (permission already granted) or opens
-        // MainActivity to ask for it — a widget/BroadcastReceiver has no UI of its own,
-        // so only an Activity can show the system permission dialog.
-        private fun setClickIntent(context: Context, views: RemoteViews, id: Int) {
-            val pendingIntent = if (LocationHelper.hasPermission(context)) {
+        // Tapping either fetches fresh weather or opens MainActivity to ask for
+        // location permission — a widget/BroadcastReceiver has no UI of its own, so
+        // only an Activity can show the system permission dialog. Only the "current"
+        // (GPS) binding ever needs that fallback; a widget bound to a searched city
+        // never needs location permission at all, so it always just refreshes.
+        private fun setClickIntent(context: Context, views: RemoteViews, id: Int, locationId: String) {
+            val needsPermission = locationId == WeatherCache.CURRENT_LOCATION_ID && !LocationHelper.hasPermission(context)
+            val pendingIntent = if (!needsPermission) {
                 PendingIntent.getBroadcast(
                     context, id,
-                    Intent(context, WeatherWidgetProvider::class.java).setAction(ACTION_REFRESH),
+                    Intent(context, WeatherWidgetProvider::class.java)
+                        .setAction(ACTION_REFRESH)
+                        .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
             } else {
@@ -340,6 +392,12 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         appWidgetIds.forEach { renderFromCache(context, appWidgetManager, it) }
     }
 
+    // Each removed widget's location binding is just dead weight once it's gone —
+    // clear it out instead of letting these accumulate forever in SharedPreferences.
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        appWidgetIds.forEach { WidgetLocationBinding.clear(context, it) }
+    }
+
     override fun onAppWidgetOptionsChanged(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -351,6 +409,13 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_REFRESH) {
+            // Different widget instances can now be bound to different locations (see
+            // WeatherWidgetConfigActivity), so a tap only refreshes the ONE widget that
+            // was actually tapped — refreshing every placed widget here would mean
+            // tapping a widget showing one city also fetches for every other city's
+            // widget, which isn't what "only updates when you touch it" means anymore.
+            val tappedId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+
             // goAsync() + a background Thread: refreshing means a location fix plus an
             // HTTP call, both of which can take real time, but a BroadcastReceiver is
             // normally expected to finish in milliseconds and would otherwise get killed
@@ -359,8 +424,14 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             Thread {
                 try {
                     val manager = AppWidgetManager.getInstance(context)
-                    val ids = manager.getAppWidgetIds(ComponentName(context, WeatherWidgetProvider::class.java))
-                    ids.forEach { performRefresh(context, manager, it) }
+                    if (tappedId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                        performRefresh(context, manager, tappedId)
+                    } else {
+                        // Defensive fallback only — every ACTION_REFRESH we send ourselves
+                        // always carries EXTRA_APPWIDGET_ID (see setClickIntent).
+                        val ids = manager.getAppWidgetIds(ComponentName(context, WeatherWidgetProvider::class.java))
+                        ids.forEach { performRefresh(context, manager, it) }
+                    }
                 } finally {
                     pending.finish()
                 }

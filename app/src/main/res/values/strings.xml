@@ -30,4 +30,5 @@
     <string name="remove_location">✕ Remove This Location</string>
     <string name="remove_location_confirm">Remove this location?</string>
     <string name="remove">Remove</string>
+    <string name="choose_widget_location">Choose a location for this widget</string>
 </resources>

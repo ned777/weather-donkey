@@ -26,4 +26,5 @@
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_weather"
     android:resizeMode="none"
+    android:configure="com.weatherwidget.app.WeatherWidgetConfigActivity"
     android:widgetCategory="home_screen" />

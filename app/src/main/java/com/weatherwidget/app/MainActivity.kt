@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tabLayout: TabLayout
     private lateinit var fahrenheitButton: Button
     private lateinit var celsiusButton: Button
-    private lateinit var locationText: TextView
+    private lateinit var todayLabelText: TextView
     private lateinit var tempText: TextView
     private lateinit var todayHighLowText: TextView
     private lateinit var conditionIcon: ImageView
@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         tabLayout = findViewById(R.id.tabLayout)
         fahrenheitButton = findViewById(R.id.fahrenheitButton)
         celsiusButton = findViewById(R.id.celsiusButton)
-        locationText = findViewById(R.id.locationText)
+        todayLabelText = findViewById(R.id.todayLabelText)
         tempText = findViewById(R.id.tempText)
         todayHighLowText = findViewById(R.id.todayHighLowText)
         conditionIcon = findViewById(R.id.conditionIcon)
@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity() {
         val snapshot = WeatherCache.read(this, id)
         if (snapshot != null) {
             render(snapshot)
-            updatedText.text = WeatherFormat.updatedAgoString(snapshot.fetchedAt)
+            updatedText.text = WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)
         } else {
             clearWeatherFieldsToPlaceholder()
             forecastHeader.visibility = View.GONE
@@ -252,8 +252,6 @@ class MainActivity : AppCompatActivity() {
     // So switching to a tab with nothing cached yet doesn't keep showing the
     // previous tab's numbers underneath the "swipe down to load" message.
     private fun clearWeatherFieldsToPlaceholder() {
-        val saved = savedLocations.find { it.id == activeLocationId }
-        locationText.text = saved?.displayName ?: getString(R.string.current_location)
         tempText.text = "--°"
         todayHighLowText.text = "H:--°  L:--°"
         conditionIcon.setImageResource(R.drawable.ic_weather_cloudy)
@@ -315,8 +313,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun render(snapshot: WeatherSnapshot) {
         val fahrenheit = UnitPreference.isFahrenheit(this)
-        val saved = savedLocations.find { it.id == activeLocationId }
-        locationText.text = snapshot.cityName ?: saved?.displayName ?: getString(R.string.current_location)
         tempText.text = WeatherFormat.tempString(snapshot.tempF, fahrenheit)
         todayHighLowText.text = WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit)
         val condition = snapshot.condition
@@ -333,11 +329,12 @@ class MainActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
         forecast.forEach { day ->
             val row = inflater.inflate(R.layout.item_forecast_day, forecastContainer, false)
-            row.findViewById<TextView>(R.id.dayLabel).text = day.dateLabel
+            row.findViewById<TextView>(R.id.dayLabel).text = day.dateLabel.uppercase()
             row.findViewById<TextView>(R.id.conditionText).text = day.condition.label
             row.findViewById<ImageView>(R.id.conditionIcon).setImageResource(day.condition.iconRes(isDay = true))
             row.findViewById<TextView>(R.id.highLowText).text = WeatherFormat.highLowString(day.highF, day.lowF, fahrenheit)
             row.findViewById<TextView>(R.id.rainText).text = WeatherFormat.rainChanceString(day.rainChancePercent)
+            row.findViewById<TextView>(R.id.windText).text = WeatherFormat.windString(day.windSpeedMph)
             forecastContainer.addView(row)
         }
     }

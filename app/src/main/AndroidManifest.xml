@@ -45,6 +45,22 @@
         </activity>
 
         <!--
+          Shown automatically right after a new widget is dragged onto the home
+          screen (wired up via weather_widget_info.xml's android:configure
+          attribute) — lets you pick which location THIS widget instance shows.
+          android:exported="true" is required for configuration activities: the
+          launcher/system UI itself is the one that starts it.
+        -->
+        <activity
+            android:name=".WeatherWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.WeatherWidget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <!--
           The widget's brain (see WeatherWidgetProvider.kt). exported="false"
           means only broadcasts from our own app process reach it directly
           (the OS itself is always allowed to deliver the standard widget

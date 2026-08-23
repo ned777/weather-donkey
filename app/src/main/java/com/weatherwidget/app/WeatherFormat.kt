@@ -30,6 +30,10 @@ object WeatherFormat {
 
     fun rainChanceString(percent: Int): String = "Rain: $percent%"
 
+    // Wind speed (mph) rather than a percentage — there's no such thing as "wind
+    // percentage" in the data Open-Meteo provides, so this reports the real number.
+    fun windString(speedMph: Double): String = "Wind: ${Math.round(speedMph)}mph"
+
     /** "Updated just now" / "Updated 14m ago" / "Updated 3h ago" — no need to pull in a date library for this. */
     fun updatedAgoString(fetchedAt: Long, nowMillis: Long = System.currentTimeMillis()): String {
         val minutes = (nowMillis - fetchedAt) / 60_000

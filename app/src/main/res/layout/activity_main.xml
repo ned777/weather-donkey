@@ -29,7 +29,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/app_title"
                 android:textColor="@color/retro_yellow"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.1"
                 android:shadowColor="@color/retro_yellow"
@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/app_subtitle"
                 android:textColor="@color/retro_white_dim"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textStyle="italic"
                 android:layout_marginBottom="16dp" />
 
@@ -75,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/unit_fahrenheit"
                     android:textStyle="bold"
-                    android:textSize="16sp" />
+                    android:textSize="18sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -91,31 +91,33 @@
                     android:layout_height="wrap_content"
                     android:text="@string/unit_celsius"
                     android:textStyle="bold"
-                    android:textSize="16sp" />
+                    android:textSize="18sp" />
 
             </LinearLayout>
 
+            <!-- Which location this is is already shown by the selected tab above, so this
+                 spot mirrors the widget's own "TODAY" label instead of repeating the city name. -->
             <TextView
-                android:id="@+id/locationText"
+                android:id="@+id/todayLabelText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/retro_teal"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.06"
-                android:text="@string/current_location" />
+                android:text="@string/widget_today_label" />
 
             <TextView
                 android:id="@+id/tempText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/retro_cyan"
-                android:textSize="72sp"
+                android:textSize="130sp"
                 android:textStyle="bold"
                 android:shadowColor="@color/retro_cyan"
                 android:shadowDx="0"
                 android:shadowDy="0"
-                android:shadowRadius="16"
+                android:shadowRadius="26"
                 android:text="--°" />
 
             <TextView
@@ -123,7 +125,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/retro_white"
-                android:textSize="16sp"
+                android:textSize="19sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="10dp"
                 android:text="H:--°  L:--°" />
@@ -137,8 +139,8 @@
 
                 <ImageView
                     android:id="@+id/conditionIcon"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:layout_marginEnd="8dp"
                     android:src="@drawable/ic_weather_cloudy" />
 
@@ -147,7 +149,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/retro_pink"
-                    android:textSize="20sp"
+                    android:textSize="23sp"
                     android:textStyle="bold"
                     android:text="--" />
 
@@ -165,7 +167,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/retro_white"
-                    android:textSize="15sp"
+                    android:textSize="17sp"
                     android:text="↑ Sunrise --:--" />
 
                 <TextView
@@ -178,7 +180,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/retro_white"
-                    android:textSize="15sp"
+                    android:textSize="17sp"
                     android:text="↓ Sunset --:--" />
 
             </LinearLayout>
@@ -189,7 +191,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/remove_location"
                 android:textColor="@color/retro_pink"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:padding="6dp"
                 android:layout_marginBottom="4dp"
                 android:visibility="gone" />
@@ -199,7 +201,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/retro_white_dim"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:layout_marginBottom="16dp"
                 android:text="" />
 
@@ -217,7 +219,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/retro_yellow"
                 android:textStyle="bold"
-                android:textSize="15sp"
+                android:textSize="17sp"
                 android:letterSpacing="0.06"
                 android:layout_marginTop="12dp"
                 android:layout_marginBottom="4dp"
