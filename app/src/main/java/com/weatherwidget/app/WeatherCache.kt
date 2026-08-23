@@ -10,7 +10,8 @@ data class DailyForecast(
     val highF: Double,
     val lowF: Double,
     val code: Int,
-    val windSpeedMph: Double
+    val windSpeedMph: Double,
+    val rainChancePercent: Int
 ) {
     val condition: WeatherCondition get() = WeatherCondition.fromCodeAndWind(code, windSpeedMph)
 }
@@ -29,6 +30,7 @@ data class WeatherSnapshot(
     val sunset: String,
     val todayHighF: Double,
     val todayLowF: Double,
+    val todayRainChancePercent: Int,
     val forecast: List<DailyForecast>, // tomorrow .. +5 days, oldest first
     val fetchedAt: Long
 ) {
@@ -45,6 +47,7 @@ data class WeatherSnapshot(
         root.put("sunset", sunset)
         root.put("today_high_f", todayHighF)
         root.put("today_low_f", todayLowF)
+        root.put("today_rain_pct", todayRainChancePercent)
         root.put("fetched_at", fetchedAt)
         val forecastArray = JSONArray()
         forecast.forEach { day ->
@@ -55,6 +58,7 @@ data class WeatherSnapshot(
                     .put("low_f", day.lowF)
                     .put("code", day.code)
                     .put("wind_mph", day.windSpeedMph)
+                    .put("rain_pct", day.rainChancePercent)
             )
         }
         root.put("forecast", forecastArray)
@@ -72,7 +76,8 @@ data class WeatherSnapshot(
                     highF = day.getDouble("high_f"),
                     lowF = day.getDouble("low_f"),
                     code = day.getInt("code"),
-                    windSpeedMph = day.optDouble("wind_mph", 0.0)
+                    windSpeedMph = day.optDouble("wind_mph", 0.0),
+                    rainChancePercent = day.optInt("rain_pct", 0)
                 )
             }
             WeatherSnapshot(
@@ -85,6 +90,7 @@ data class WeatherSnapshot(
                 sunset = root.getString("sunset"),
                 todayHighF = root.getDouble("today_high_f"),
                 todayLowF = root.getDouble("today_low_f"),
+                todayRainChancePercent = root.optInt("today_rain_pct", 0),
                 forecast = forecast,
                 fetchedAt = root.getLong("fetched_at")
             )

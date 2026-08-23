@@ -75,6 +75,17 @@
                 android:ellipsize="end"
                 android:text="H:--°  L:--°" />
 
+            <TextView
+                android:id="@+id/todayRainText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_white"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="Rain: --%" />
+
         </LinearLayout>
 
         <!-- Top-right: "TODAY" label, then condition, then sunrise/sunset — one line each, no gap. -->
@@ -147,7 +158,10 @@
     </LinearLayout>
 
     <!-- 1dp divider between the "today" half and the two-day forecast half, inset a little from the edges. -->
-    <View
+    <!-- Plain android.view.View isn't in RemoteViews' allowed class list on every
+         launcher ("Class not allowed to be inflated") — a background-colored, empty
+         TextView is the standard RemoteViews-safe way to draw a thin divider line. -->
+    <TextView
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
@@ -155,7 +169,8 @@
         android:layout_marginBottom="6dp"
         android:layout_marginStart="6dp"
         android:layout_marginEnd="6dp"
-        android:background="@color/retro_white" />
+        android:background="@color/retro_white"
+        android:text="" />
 
     <!-- Bottom half: the next two days, high/low. -->
     <LinearLayout
@@ -201,6 +216,15 @@
                 android:textSize="13sp"
                 android:text="--" />
 
+            <TextView
+                android:id="@+id/forecast1Rain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_white"
+                android:textSize="11sp"
+                android:text="Rain: --%" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -238,6 +262,15 @@
                 android:textColor="@color/retro_pink"
                 android:textSize="13sp"
                 android:text="--" />
+
+            <TextView
+                android:id="@+id/forecast2Rain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_white"
+                android:textSize="11sp"
+                android:text="Rain: --%" />
 
         </LinearLayout>
 

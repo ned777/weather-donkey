@@ -35,13 +35,31 @@
         android:ellipsize="end"
         android:text="--" />
 
-    <TextView
-        android:id="@+id/highLowText"
+    <!-- High/low and rain chance stacked vertically on the right, not side by side. -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="end"
-        android:textColor="@color/retro_white"
-        android:textSize="15sp"
-        android:text="H:--°  L:--°" />
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <TextView
+            android:id="@+id/highLowText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textColor="@color/retro_white"
+            android:textSize="15sp"
+            android:text="H:--°  L:--°" />
+
+        <TextView
+            android:id="@+id/rainText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textColor="@color/retro_white_dim"
+            android:textSize="12sp"
+            android:text="Rain: --%" />
+
+    </LinearLayout>
 
 </LinearLayout>

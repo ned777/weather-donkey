@@ -24,7 +24,7 @@ object WeatherClient {
                 "https://api.open-meteo.com/v1/forecast" +
                     "?latitude=$lat&longitude=$lon" +
                     "&current=temperature_2m,weather_code,is_day,wind_speed_10m" +
-                    "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max" +
+                    "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max,precipitation_probability_max" +
                     "&forecast_days=6" + // today + the next 5 days
                     "&temperature_unit=fahrenheit" +
                     "&wind_speed_unit=mph" +
@@ -61,6 +61,7 @@ object WeatherClient {
         val sunrises = daily.optJSONArray("sunrise") ?: return null
         val sunsets = daily.optJSONArray("sunset") ?: return null
         val winds = daily.optJSONArray("wind_speed_10m_max") ?: return null
+        val rainChances = daily.optJSONArray("precipitation_probability_max") ?: return null
         if (dates.length() == 0) return null
 
         val forecast = (1 until dates.length()).map { i ->
@@ -69,7 +70,8 @@ object WeatherClient {
                 highF = highs.optDouble(i),
                 lowF = lows.optDouble(i),
                 code = codes.optInt(i),
-                windSpeedMph = winds.optDouble(i)
+                windSpeedMph = winds.optDouble(i),
+                rainChancePercent = rainChances.optInt(i)
             )
         }
 
@@ -83,6 +85,9 @@ object WeatherClient {
             sunset = sunsets.optString(0),
             todayHighF = highs.optDouble(0),
             todayLowF = lows.optDouble(0),
+            // Open-Meteo has no "current" precipitation probability field, only daily —
+            // today's chance is the same daily max used for today's high/low above.
+            todayRainChancePercent = rainChances.optInt(0),
             forecast = forecast,
             fetchedAt = System.currentTimeMillis()
         )

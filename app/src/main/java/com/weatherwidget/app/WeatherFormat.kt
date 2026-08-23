@@ -28,6 +28,8 @@ object WeatherFormat {
     fun highLowString(highF: Double, lowF: Double, fahrenheit: Boolean): String =
         "H:${tempString(highF, fahrenheit)}  L:${tempString(lowF, fahrenheit)}"
 
+    fun rainChanceString(percent: Int): String = "Rain: $percent%"
+
     /** "Updated just now" / "Updated 14m ago" / "Updated 3h ago" — no need to pull in a date library for this. */
     fun updatedAgoString(fetchedAt: Long, nowMillis: Long = System.currentTimeMillis()): String {
         val minutes = (nowMillis - fetchedAt) / 60_000

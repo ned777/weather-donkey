@@ -337,6 +337,7 @@ class MainActivity : AppCompatActivity() {
             row.findViewById<TextView>(R.id.conditionText).text = day.condition.label
             row.findViewById<ImageView>(R.id.conditionIcon).setImageResource(day.condition.iconRes(isDay = true))
             row.findViewById<TextView>(R.id.highLowText).text = WeatherFormat.highLowString(day.highF, day.lowF, fahrenheit)
+            row.findViewById<TextView>(R.id.rainText).text = WeatherFormat.rainChanceString(day.rainChancePercent)
             forecastContainer.addView(row)
         }
     }

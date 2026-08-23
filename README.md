@@ -11,12 +11,13 @@ moment you touch it.
            CURRENT LOCA..
       72°          TODAY
   H:78° L:61°       Sunny
-                  ↑ 6:32 AM
+  Rain: 10%       ↑ 6:32 AM
                   ↓ 7:45 PM
   ────────────────────────
    WED           THU
   75/58         70/55
   SUNNY         WINDY
+ Rain: 20%     Rain: 5%
 
   3:45 PM · Aug 23 · PDT
 ```
@@ -27,9 +28,10 @@ moment you touch it.
   choice, set in the app), under a literal "TODAY" label
 - Condition, in words — no icons on the widget by request. Six states:
   **Sunny**, **Partial**, **Cloudy**, **Windy**, **Rainy**, **Snowy**
-- Sunrise and sunset, in local clock time
-- A 1px white divider, then the next two days' high/low and condition
-  (day label in caps), filling the bottom half
+- Rain chance (today's daily max — Open-Meteo has no separate "current"
+  precipitation-probability field), and sunrise/sunset in local clock time
+- A 1px white divider, then the next two days' high/low, condition (day
+  label in caps), and rain chance, filling the bottom half
 - A status line at the very bottom: **"Updating…"** while a tap's fetch is
   in flight, otherwise the last-updated time, date, and timezone
 
@@ -49,7 +51,8 @@ The widget itself only ever shows your current GPS location — that's the
   whatever's already cached instantly; it never triggers a new fetch.
 - **5-day forecast** — today's high/low plus the next 5 days, each with its
   own condition and a flat vector icon (`res/drawable/ic_weather_*.xml`) —
-  no emoji, plain solid-color shapes in the app's own retro palette.
+  no emoji, plain solid-color shapes in the app's own retro palette. Rain
+  chance sits stacked under the high/low on the right side of each row.
 - **Pull down to refresh** — no separate Refresh button; swipe down on any
   tab to fetch that tab's location.
 
