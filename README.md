@@ -8,26 +8,33 @@ moment you touch it.
 ## What it shows
 
 ```
-             CURRENT LOCATION
-      72°           Sunny
-  H:78° L:61°     ↑ 6:32 AM
+           CURRENT LOCA..
+      72°          TODAY
+  H:78° L:61°       Sunny
+                  ↑ 6:32 AM
                   ↓ 7:45 PM
+  ────────────────────────
+   WED           THU
+  75/58         70/55
+  SUNNY         WINDY
 
-   Wed          Thu
-  75/58        70/55
-  Sunny        Windy
+  3:45 PM · Aug 23 · PDT
 ```
 
+- City name centered at the top, white, capped at 10 characters
+  ("San Francisco" → "San Fran..")
 - Current temperature at your approximate location, in °F or °C (your
-  choice, set in the app)
+  choice, set in the app), under a literal "TODAY" label
 - Condition, in words — no icons on the widget by request. Six states:
   **Sunny**, **Partial**, **Cloudy**, **Windy**, **Rainy**, **Snowy**
 - Sunrise and sunset, in local clock time
-- The next two days' high/low and condition, filling the bottom half
+- A 1px white divider, then the next two days' high/low and condition
+  (day label in caps), filling the bottom half
+- A status line at the very bottom: **"Updating…"** while a tap's fetch is
+  in flight, otherwise the last-updated time, date, and timezone
 
 Text sizes are all measured against the widget's actual rendered size and
-shrunk to fit if needed, so nothing wraps or gets clipped. A city name over
-7 characters gets hard-truncated ("San Francisco" → "San F..").
+shrunk to fit if needed, so nothing wraps or gets clipped.
 
 ## The app: multiple locations, unit toggle, 5-day forecast, flat icons
 

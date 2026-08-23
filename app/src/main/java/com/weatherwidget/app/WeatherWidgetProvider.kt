@@ -54,7 +54,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val snapshot = WeatherCache.read(context, WeatherCache.CURRENT_LOCATION_ID)
             val statusText = when {
                 !LocationHelper.hasPermission(context) -> context.getString(R.string.widget_need_permission)
-                snapshot != null -> ""
+                snapshot != null -> WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)
                 else -> context.getString(R.string.widget_tap_to_load)
             }
             manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, statusText))
@@ -90,14 +90,14 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
             val snapshot = fetched.copy(cityName = GeocodeHelper.cityName(context, location))
             WeatherCache.save(context, WeatherCache.CURRENT_LOCATION_ID, snapshot)
-            manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, ""))
+            manager.updateAppWidget(id, buildViews(context, manager, id, snapshot, WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)))
         }
 
-        // e.g. "Updated 14m ago — Couldn't reach weather service — tap to retry", so a
-        // failed refresh still shows how stale the last-known data is, not just "error".
+        // e.g. "3:45 PM · Aug 23 · PDT — Couldn't reach weather service — tap to retry", so a
+        // failed refresh still shows when the last good data came in, not just "error".
         private fun statusWithFallback(context: Context, cached: WeatherSnapshot?, errorRes: Int): String {
             val error = context.getString(errorRes)
-            return if (cached != null) "${WeatherFormat.updatedAgoString(cached.fetchedAt)} — $error" else error
+            return if (cached != null) "${WeatherFormat.lastUpdatedTimestamp(cached.fetchedAt)} — $error" else error
         }
 
         /**
@@ -110,7 +110,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_weather)
             val fahrenheit = UnitPreference.isFahrenheit(context)
 
-            val locationStr: String
+            val cityStr: String
             val tempStr: String
             val todayHighLowStr: String
             val conditionStr: String
@@ -120,7 +120,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val day2: DailyForecast?
 
             if (snapshot != null) {
-                locationStr = widgetLocationLabel(snapshot.cityName ?: context.getString(R.string.current_location))
+                cityStr = widgetCityLabel(snapshot.cityName ?: context.getString(R.string.current_location))
                 tempStr = WeatherFormat.tempString(snapshot.tempF, fahrenheit)
                 todayHighLowStr = WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit)
                 conditionStr = snapshot.condition.label
@@ -129,7 +129,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 day1 = snapshot.forecast.getOrNull(0)
                 day2 = snapshot.forecast.getOrNull(1)
             } else {
-                locationStr = context.getString(R.string.app_title)
+                cityStr = context.getString(R.string.app_title)
                 tempStr = "--°"
                 todayHighLowStr = "H:--°  L:--°"
                 conditionStr = "--"
@@ -138,39 +138,43 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 day1 = null
                 day2 = null
             }
+            val todayLabel = context.getString(R.string.widget_today_label)
+            val forecast1Day = (day1?.dateLabel ?: "--").uppercase()
+            val forecast2Day = (day2?.dateLabel ?: "--").uppercase()
             val forecast1HighLow = forecastHighLowString(day1, fahrenheit)
             val forecast2HighLow = forecastHighLowString(day2, fahrenheit)
             val forecast1Condition = day1?.condition?.label ?: "--"
             val forecast2Condition = day2?.condition?.label ?: "--"
 
-            views.setTextViewText(R.id.locationText, locationStr)
+            views.setTextViewText(R.id.cityText, cityStr)
+            views.setTextViewText(R.id.todayLabelText, todayLabel)
             views.setTextViewText(R.id.tempText, tempStr)
             views.setTextViewText(R.id.todayHighLowText, todayHighLowStr)
             views.setTextViewText(R.id.conditionText, conditionStr)
             views.setTextViewText(R.id.sunriseText, sunriseStr)
             views.setTextViewText(R.id.sunsetText, sunsetStr)
             views.setTextViewText(R.id.updatedText, statusText)
-            views.setTextViewText(R.id.forecast1Day, day1?.dateLabel ?: "--")
+            views.setTextViewText(R.id.forecast1Day, forecast1Day)
             views.setTextViewText(R.id.forecast1HighLow, forecast1HighLow)
             views.setTextViewText(R.id.forecast1Condition, forecast1Condition)
-            views.setTextViewText(R.id.forecast2Day, day2?.dateLabel ?: "--")
+            views.setTextViewText(R.id.forecast2Day, forecast2Day)
             views.setTextViewText(R.id.forecast2HighLow, forecast2HighLow)
             views.setTextViewText(R.id.forecast2Condition, forecast2Condition)
 
             applyResponsiveSizing(
-                context, views, manager, id, statusText,
-                tempStr, todayHighLowStr, locationStr, conditionStr, sunriseStr, sunsetStr,
-                forecast1HighLow, forecast2HighLow, forecast1Condition, forecast2Condition
+                context, views, manager, id,
+                tempStr, todayHighLowStr, todayLabel, conditionStr, sunriseStr, sunsetStr,
+                forecast1Day, forecast2Day, forecast1HighLow, forecast2HighLow, forecast1Condition, forecast2Condition
             )
             setClickIntent(context, views, id)
             return views
         }
 
-        // The widget's location column is narrow — a long city name gets a hard
-        // character-count truncation ("San Francisco" -> "San F..") on top of (not
-        // instead of) the normal width-based fit-sizing/ellipsize.
-        private fun widgetLocationLabel(name: String): String =
-            if (name.length > 7) name.take(5) + ".." else name
+        // The city header is narrow — a long name gets a hard character-count
+        // truncation ("San Francisco" -> "San Fran..") on top of (not instead of) the
+        // normal width-based fit-sizing/ellipsize. 8 chars + ".." = 10 chars max.
+        private fun widgetCityLabel(name: String): String =
+            if (name.length > 8) name.take(8) + ".." else name
 
         private fun forecastHighLowString(day: DailyForecast?, fahrenheit: Boolean): String =
             if (day != null) "${WeatherFormat.tempString(day.highF, fahrenheit)}/${WeatherFormat.tempString(day.lowF, fahrenheit)}" else "--°/--°"
@@ -190,10 +194,10 @@ class WeatherWidgetProvider : AppWidgetProvider() {
          * wraps onto a second line and eats space the forecast row needed.
          */
         private fun applyResponsiveSizing(
-            context: Context, views: RemoteViews, manager: AppWidgetManager, id: Int, statusText: String,
-            tempStr: String, todayHighLowStr: String, locationStr: String, conditionStr: String,
-            sunriseStr: String, sunsetStr: String, forecast1HighLow: String, forecast2HighLow: String,
-            forecast1Condition: String, forecast2Condition: String
+            context: Context, views: RemoteViews, manager: AppWidgetManager, id: Int,
+            tempStr: String, todayHighLowStr: String, todayLabel: String, conditionStr: String,
+            sunriseStr: String, sunsetStr: String, forecast1Day: String, forecast2Day: String,
+            forecast1HighLow: String, forecast2HighLow: String, forecast1Condition: String, forecast2Condition: String
         ) {
             val options = manager.getAppWidgetOptions(id)
             val minHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
@@ -202,19 +206,27 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
             val paddingDp = if (tier == WidgetSizeTier.COMPACT) 10 else 16
             val paddingPx = dpToPx(context, paddingDp)
-            val topPaddingPx = dpToPx(context, paddingDp + 8) // a bit more breathing room above the temperature/location line specifically
+            val topPaddingPx = dpToPx(context, paddingDp + 8) // a bit more breathing room above the city name specifically
             views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, topPaddingPx, paddingPx, paddingPx)
 
             // Both the top row's two columns and the forecast row's two cells split the
             // remaining width 50/50 with no gap between them (see widget_weather.xml) —
             // one shared "half column" width, minus a small buffer so text never rides
-            // right up against the middle.
+            // right up against the middle. The city name spans the FULL width instead.
             val widthPx = dpToPx(context, minWidthDp)
-            val halfColumnPx = ((widthPx - 2 * paddingPx) / 2f - dpToPx(context, 4)).coerceAtLeast(0f)
+            val fullWidthPx = (widthPx - 2 * paddingPx).toFloat().coerceAtLeast(0f)
+            val halfColumnPx = (fullWidthPx / 2f - dpToPx(context, 4)).coerceAtLeast(0f)
 
             val tempMaxSp = if (tier == WidgetSizeTier.FULL) 56f else 30f
             setSp(views, R.id.tempText, fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true))
-            setSp(views, R.id.locationText, fitWidthSp(context, locationStr, halfColumnPx, if (tier == WidgetSizeTier.FULL) 16f else 11f, 9f, bold = true))
+
+            // "TODAY" is short and basically never needs to shrink, but the city name at
+            // top must match its size exactly (by request) rather than being fit
+            // independently — so compute todaySp first and reuse it for cityText.
+            val todaySp = fitWidthSp(context, todayLabel, halfColumnPx, if (tier == WidgetSizeTier.FULL) 16f else 11f, 9f, bold = true)
+            setSp(views, R.id.todayLabelText, todaySp)
+            setSp(views, R.id.cityText, todaySp)
+
             // conditionText stays visible at every size (it's the only thing telling you
             // sunny/cloudy/rainy/etc. now that there's no icon) — just smaller when tight.
             setSp(views, R.id.conditionText, fitWidthSp(context, conditionStr, halfColumnPx, if (tier == WidgetSizeTier.FULL) 14f else 11f, 8f, bold = true))
@@ -232,23 +244,26 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 )
                 setSp(views, R.id.forecast1HighLow, forecastHighLowSp)
                 setSp(views, R.id.forecast2HighLow, forecastHighLowSp)
-                setSp(views, R.id.forecast1Day, 13f)
-                setSp(views, R.id.forecast2Day, 13f)
 
-                // Same "smaller of the two" matching for the condition word underneath each day.
-                val forecastConditionSp = minOf(
-                    fitWidthSp(context, forecast1Condition, halfColumnPx, 11f, 8f, bold = false),
-                    fitWidthSp(context, forecast2Condition, halfColumnPx, 11f, 8f, bold = false)
+                // Day label and condition word share one size (by request) — the smallest
+                // needed across all four strings, so every cell lines up the same way.
+                val forecastLabelSp = minOf(
+                    fitWidthSp(context, forecast1Day, halfColumnPx, 13f, 8f, bold = true),
+                    fitWidthSp(context, forecast2Day, halfColumnPx, 13f, 8f, bold = true),
+                    fitWidthSp(context, forecast1Condition, halfColumnPx, 13f, 8f, bold = false),
+                    fitWidthSp(context, forecast2Condition, halfColumnPx, 13f, 8f, bold = false)
                 )
-                setSp(views, R.id.forecast1Condition, forecastConditionSp)
-                setSp(views, R.id.forecast2Condition, forecastConditionSp)
+                setSp(views, R.id.forecast1Day, forecastLabelSp)
+                setSp(views, R.id.forecast2Day, forecastLabelSp)
+                setSp(views, R.id.forecast1Condition, forecastLabelSp)
+                setSp(views, R.id.forecast2Condition, forecastLabelSp)
             }
             setSp(views, R.id.updatedText, 10f)
 
             views.setViewVisibility(R.id.todayHighLowText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.sunRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.divider, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.forecastRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.updatedText, if (statusText.isNotEmpty()) View.VISIBLE else View.GONE)
         }
 
         private fun setSp(views: RemoteViews, viewId: Int, sizeSp: Float) {

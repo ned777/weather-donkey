@@ -1,12 +1,16 @@
 package com.weatherwidget.app
 
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /** Shared formatting for both the widget and MainActivity, so the two never drift apart. */
 object WeatherFormat {
     private val clockFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
+    private val lastUpdatedFormatter = DateTimeFormatter.ofPattern("h:mm a · MMM d · zzz", Locale.getDefault())
 
     /** Open-Meteo returns sunrise/sunset as local time already (timezone=auto), e.g. "2026-08-22T06:32". */
     fun clockTime(isoLocalDateTime: String): String = try {
@@ -33,4 +37,8 @@ object WeatherFormat {
             else -> "Updated ${minutes / 60}h ago"
         }
     }
+
+    /** e.g. "3:45 PM · Aug 23 · PDT" — the widget's bottom status line once data has loaded. */
+    fun lastUpdatedTimestamp(fetchedAt: Long): String =
+        ZonedDateTime.ofInstant(Instant.ofEpochMilli(fetchedAt), ZoneId.systemDefault()).format(lastUpdatedFormatter)
 }
