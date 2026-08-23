@@ -245,12 +245,11 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val minWidthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
             val tier = if (minOf(minWidthDp, minHeightDp) < 130) WidgetSizeTier.COMPACT else WidgetSizeTier.FULL
 
-            // Sides keep the original margin; top and bottom are both trimmed down
-            // further and kept equal to each other, so the city name up top and the
-            // forecast's last line at the bottom sit the same, smaller distance from
-            // their respective edges.
+            // Sides keep the original margin; top and bottom stay equal to each other,
+            // so the city name up top and the forecast's last line at the bottom sit
+            // the same distance from their respective edges.
             val paddingDp = if (tier == WidgetSizeTier.COMPACT) 10 else 16
-            val verticalPaddingDp = if (tier == WidgetSizeTier.COMPACT) 5 else 8
+            val verticalPaddingDp = if (tier == WidgetSizeTier.COMPACT) 8 else 13
             val paddingPx = dpToPx(context, paddingDp)
             val verticalPaddingPx = dpToPx(context, verticalPaddingDp)
             views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, verticalPaddingPx, paddingPx, verticalPaddingPx)
