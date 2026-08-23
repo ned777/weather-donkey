@@ -39,6 +39,6 @@
     <path android:fillColor="#00E0B8" android:pathData="M75,30 L79,30 L79,36 L75,36 Z" />
 
     <!-- Eye + nostril. -->
-    <path android:fillColor="#FF4F87" android:pathData="M80,42 m-2.5,0 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
-    <path android:fillColor="#FF4F87" android:pathData="M95,49 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+    <path android:fillColor="#C2185B" android:pathData="M80,42 m-2.5,0 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
+    <path android:fillColor="#C2185B" android:pathData="M95,49 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
 </vector>
