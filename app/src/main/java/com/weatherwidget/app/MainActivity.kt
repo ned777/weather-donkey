@@ -334,6 +334,7 @@ class MainActivity : AppCompatActivity() {
         forecast.forEach { day ->
             val row = inflater.inflate(R.layout.item_forecast_day, forecastContainer, false)
             row.findViewById<TextView>(R.id.dayLabel).text = day.dateLabel
+            row.findViewById<TextView>(R.id.conditionText).text = day.condition.label
             row.findViewById<ImageView>(R.id.conditionIcon).setImageResource(day.condition.iconRes(isDay = true))
             row.findViewById<TextView>(R.id.highLowText).text = WeatherFormat.highLowString(day.highF, day.lowF, fahrenheit)
             forecastContainer.addView(row)
