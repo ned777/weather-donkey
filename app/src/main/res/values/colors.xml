@@ -11,6 +11,9 @@
     <!-- Flat near-black fill behind the widget and the app's own screen. -->
     <color name="widget_bg">#0B0B10</color>
 
+    <!-- Slightly lighter dark grey, just for the launcher adaptive-icon background. -->
+    <color name="icon_bg">#1E1E26</color>
+
     <color name="retro_yellow">#FFD400</color>
     <color name="retro_cyan">#00D9FF</color>
     <color name="retro_teal">#00E0B8</color>

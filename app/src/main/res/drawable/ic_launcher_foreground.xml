@@ -36,10 +36,16 @@
         <!-- Head + snout. -->
         <path android:fillColor="#00D9FF" android:pathData="M66,34 L90,34 L90,54 L66,54 Z" />
         <path android:fillColor="#00D9FF" android:pathData="M84,44 L98,44 L98,54 L84,54 Z" />
+        <!-- Pale muzzle patch around the nose — the classic donkey tell. -->
+        <path android:fillColor="#F5F5FF" android:pathData="M92,45 L98,45 L98,53 L92,53 Z" />
 
-        <!-- Ears — long and angled outward, the signature donkey feature. -->
-        <path android:fillColor="#00E0B8" android:pathData="M68,34 L64,8 L77,32 Z" />
-        <path android:fillColor="#00E0B8" android:pathData="M82,34 L89,7 L92,32 Z" />
+        <!-- Ears — long, blunt-rounded ovals angled outward (not pointed, so this reads
+             as a donkey/horse ear rather than a wolf's). Each ear is a straight-sided
+             shaft with a circular cap overlaid to round off its tip. -->
+        <path android:fillColor="#00E0B8" android:pathData="M68,34 L63,14 L70,13 L76,33 Z" />
+        <path android:fillColor="#00E0B8" android:pathData="M66.5,13.5 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+        <path android:fillColor="#00E0B8" android:pathData="M88,34 L93,14 L86,13 L80,33 Z" />
+        <path android:fillColor="#00E0B8" android:pathData="M89.5,13.5 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
 
         <!-- Mane, between the ears and down the neck. -->
         <path android:fillColor="#00E0B8" android:pathData="M68,30 L72,30 L72,36 L68,36 Z" />
