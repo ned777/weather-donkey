@@ -2,12 +2,12 @@
 <!--
   Layout: big current temp top-left, location/condition/sunrise-sunset
   stacked tight (no vertical gap) top-right, today's high/low right under
-  the big temp, and a two-day forecast row filling the bottom half. Every
-  row below the top row is toggled visible/gone in code
-  (WeatherWidgetProvider — buildViews()) based on the widget's current
-  on-screen size, which is how this stays legible resized all the way down
-  to a small square. All text is set in code; nothing here ever changes
-  except through that.
+  the big temp, and a two-day forecast row filling the bottom half — each
+  forecast cell shows its condition as a word underneath the high/low, not
+  an icon (no icons anywhere in this widget, by request). Every row below
+  the top row is toggled visible/gone in code (WeatherWidgetProvider —
+  buildViews()) based on the widget's current on-screen size. All text is
+  set in code; nothing here ever changes except through that.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/weatherWidgetRoot"
@@ -82,34 +82,18 @@
                 android:ellipsize="end"
                 android:text="@string/current_location" />
 
-            <LinearLayout
-                android:id="@+id/conditionRow"
+            <!-- No icon here per request — just the condition word. -->
+            <TextView
+                android:id="@+id/conditionText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/conditionEmoji"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="16sp"
-                    android:layout_marginEnd="4dp"
-                    android:text="" />
-
-                <TextView
-                    android:id="@+id/conditionText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:includeFontPadding="false"
-                    android:textColor="@color/retro_pink"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:text="--" />
-
-            </LinearLayout>
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_pink"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="--" />
 
             <!-- Sunrise and sunset each get their own line — not a side-by-side row. -->
             <LinearLayout
@@ -174,13 +158,6 @@
                 android:text="--" />
 
             <TextView
-                android:id="@+id/forecast1Emoji"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="22sp"
-                android:text="" />
-
-            <TextView
                 android:id="@+id/forecast1HighLow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -188,6 +165,16 @@
                 android:textColor="@color/retro_white"
                 android:textSize="13sp"
                 android:text="--°/--°" />
+
+            <!-- Condition word underneath, no icon. -->
+            <TextView
+                android:id="@+id/forecast1Condition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_pink"
+                android:textSize="11sp"
+                android:text="--" />
 
         </LinearLayout>
 
@@ -209,13 +196,6 @@
                 android:text="--" />
 
             <TextView
-                android:id="@+id/forecast2Emoji"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="22sp"
-                android:text="" />
-
-            <TextView
                 android:id="@+id/forecast2HighLow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -223,6 +203,16 @@
                 android:textColor="@color/retro_white"
                 android:textSize="13sp"
                 android:text="--°/--°" />
+
+            <!-- Condition word underneath, no icon. -->
+            <TextView
+                android:id="@+id/forecast2Condition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="@color/retro_pink"
+                android:textSize="11sp"
+                android:text="--" />
 
         </LinearLayout>
 

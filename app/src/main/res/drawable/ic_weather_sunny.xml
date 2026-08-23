@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Sun disc. -->
+    <path android:fillColor="#00D9FF" android:pathData="M12,12 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+    <!-- Four axis-aligned rays. -->
+    <path android:fillColor="#00D9FF" android:pathData="M11,2 L13,2 L13,5.5 L11,5.5 Z" />
+    <path android:fillColor="#00D9FF" android:pathData="M11,18.5 L13,18.5 L13,22 L11,22 Z" />
+    <path android:fillColor="#00D9FF" android:pathData="M2,11 L5.5,11 L5.5,13 L2,13 Z" />
+    <path android:fillColor="#00D9FF" android:pathData="M18.5,11 L22,11 L22,13 L18.5,13 Z" />
+</vector>

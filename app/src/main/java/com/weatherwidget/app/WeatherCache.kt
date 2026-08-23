@@ -9,8 +9,11 @@ data class DailyForecast(
     val dateLabel: String,
     val highF: Double,
     val lowF: Double,
-    val code: Int
-)
+    val code: Int,
+    val windSpeedMph: Double
+) {
+    val condition: WeatherCondition get() = WeatherCondition.fromCodeAndWind(code, windSpeedMph)
+}
 
 /**
  * One successful fetch's worth of weather data: today's current reading plus
@@ -21,6 +24,7 @@ data class WeatherSnapshot(
     val tempF: Double,
     val code: Int,
     val isDay: Boolean,
+    val windSpeedMph: Double,
     val sunrise: String,
     val sunset: String,
     val todayHighF: Double,
@@ -28,12 +32,15 @@ data class WeatherSnapshot(
     val forecast: List<DailyForecast>, // tomorrow .. +5 days, oldest first
     val fetchedAt: Long
 ) {
+    val condition: WeatherCondition get() = WeatherCondition.fromCodeAndWind(code, windSpeedMph)
+
     fun toJson(): String {
         val root = JSONObject()
         root.put("city", cityName ?: JSONObject.NULL)
         root.put("temp_f", tempF)
         root.put("code", code)
         root.put("is_day", isDay)
+        root.put("wind_mph", windSpeedMph)
         root.put("sunrise", sunrise)
         root.put("sunset", sunset)
         root.put("today_high_f", todayHighF)
@@ -47,6 +54,7 @@ data class WeatherSnapshot(
                     .put("high_f", day.highF)
                     .put("low_f", day.lowF)
                     .put("code", day.code)
+                    .put("wind_mph", day.windSpeedMph)
             )
         }
         root.put("forecast", forecastArray)
@@ -63,7 +71,8 @@ data class WeatherSnapshot(
                     dateLabel = day.getString("label"),
                     highF = day.getDouble("high_f"),
                     lowF = day.getDouble("low_f"),
-                    code = day.getInt("code")
+                    code = day.getInt("code"),
+                    windSpeedMph = day.optDouble("wind_mph", 0.0)
                 )
             }
             WeatherSnapshot(
@@ -71,6 +80,7 @@ data class WeatherSnapshot(
                 tempF = root.getDouble("temp_f"),
                 code = root.getInt("code"),
                 isDay = root.getBoolean("is_day"),
+                windSpeedMph = root.optDouble("wind_mph", 0.0),
                 sunrise = root.getString("sunrise"),
                 sunset = root.getString("sunset"),
                 todayHighF = root.getDouble("today_high_f"),

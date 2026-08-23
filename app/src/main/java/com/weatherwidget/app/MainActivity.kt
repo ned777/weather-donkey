@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationText: TextView
     private lateinit var tempText: TextView
     private lateinit var todayHighLowText: TextView
-    private lateinit var conditionEmoji: TextView
+    private lateinit var conditionIcon: ImageView
     private lateinit var conditionText: TextView
     private lateinit var sunriseText: TextView
     private lateinit var sunsetText: TextView
@@ -72,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         locationText = findViewById(R.id.locationText)
         tempText = findViewById(R.id.tempText)
         todayHighLowText = findViewById(R.id.todayHighLowText)
-        conditionEmoji = findViewById(R.id.conditionEmoji)
+        conditionIcon = findViewById(R.id.conditionIcon)
         conditionText = findViewById(R.id.conditionText)
         sunriseText = findViewById(R.id.sunriseText)
         sunsetText = findViewById(R.id.sunsetText)
@@ -255,7 +256,7 @@ class MainActivity : AppCompatActivity() {
         locationText.text = saved?.displayName ?: getString(R.string.current_location)
         tempText.text = "--°"
         todayHighLowText.text = "H:--°  L:--°"
-        conditionEmoji.text = ""
+        conditionIcon.setImageResource(R.drawable.ic_weather_cloudy)
         conditionText.text = "--"
         sunriseText.text = "↑ Sunrise --:--"
         sunsetText.text = "↓ Sunset --:--"
@@ -318,8 +319,8 @@ class MainActivity : AppCompatActivity() {
         locationText.text = snapshot.cityName ?: saved?.displayName ?: getString(R.string.current_location)
         tempText.text = WeatherFormat.tempString(snapshot.tempF, fahrenheit)
         todayHighLowText.text = WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit)
-        val condition = WeatherCondition.fromCode(snapshot.code)
-        conditionEmoji.text = condition.emoji(snapshot.isDay)
+        val condition = snapshot.condition
+        conditionIcon.setImageResource(condition.iconRes(snapshot.isDay))
         conditionText.text = condition.label
         sunriseText.text = "↑ Sunrise ${WeatherFormat.clockTime(snapshot.sunrise)}"
         sunsetText.text = "↓ Sunset ${WeatherFormat.clockTime(snapshot.sunset)}"
@@ -333,7 +334,7 @@ class MainActivity : AppCompatActivity() {
         forecast.forEach { day ->
             val row = inflater.inflate(R.layout.item_forecast_day, forecastContainer, false)
             row.findViewById<TextView>(R.id.dayLabel).text = day.dateLabel
-            row.findViewById<TextView>(R.id.conditionEmoji).text = WeatherCondition.fromCode(day.code).emoji(true)
+            row.findViewById<ImageView>(R.id.conditionIcon).setImageResource(day.condition.iconRes(isDay = true))
             row.findViewById<TextView>(R.id.highLowText).text = WeatherFormat.highLowString(day.highF, day.lowF, fahrenheit)
             forecastContainer.addView(row)
         }

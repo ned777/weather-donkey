@@ -8,23 +8,28 @@ moment you touch it.
 ## What it shows
 
 ```
-CURRENT LOCATION
-      72°
-  ☀ Sunny
-↑ 6:32 AM
-↓ 7:45 PM
+             CURRENT LOCATION
+      72°           Sunny
+  H:78° L:61°     ↑ 6:32 AM
+                  ↓ 7:45 PM
+
+   Wed          Thu
+  75/58        70/55
+  Sunny        Windy
 ```
 
 - Current temperature at your approximate location, in °F or °C (your
   choice, set in the app)
-- Condition, bucketed into exactly three states: **Sunny**, **Cloudy**, or
-  **Raining**
+- Condition, in words — no icons on the widget by request. Six states:
+  **Sunny**, **Partial**, **Cloudy**, **Windy**, **Rainy**, **Snowy**
 - Sunrise and sunset, in local clock time
+- The next two days' high/low and condition, filling the bottom half
 
 Text sizes are all measured against the widget's actual rendered size and
-shrunk to fit if needed, so nothing wraps or gets clipped.
+shrunk to fit if needed, so nothing wraps or gets clipped. A city name over
+7 characters gets hard-truncated ("San Francisco" → "San F..").
 
-## The app: multiple locations, unit toggle, 5-day forecast
+## The app: multiple locations, unit toggle, 5-day forecast, flat icons
 
 The widget itself only ever shows your current GPS location — that's the
 "Current" tab, and it's always the default. Opening the app gets you more:
@@ -36,7 +41,8 @@ The widget itself only ever shows your current GPS location — that's the
 - **°F / °C toggle** — a pure display switch. Flipping it reformats
   whatever's already cached instantly; it never triggers a new fetch.
 - **5-day forecast** — today's high/low plus the next 5 days, each with its
-  own condition icon.
+  own condition and a flat vector icon (`res/drawable/ic_weather_*.xml`) —
+  no emoji, plain solid-color shapes in the app's own retro palette.
 - **Pull down to refresh** — no separate Refresh button; swipe down on any
   tab to fetch that tab's location.
 
@@ -44,8 +50,11 @@ The widget itself only ever shows your current GPS location — that's the
 
 Weather comes from [Open-Meteo](https://open-meteo.com) — a free,
 open-source weather API. No API key, no account, no cloud relay of your
-own. `weather_code` (the standard WMO weather code) is what gets bucketed
-into Sunny/Cloudy/Raining — see `WeatherCondition.kt`.
+own. `weather_code` (the standard WMO weather code) plus wind speed is what
+gets bucketed into Sunny/Partial/Cloudy/Windy/Rainy/Snowy — see
+`WeatherCondition.kt`. Windy only wins over a plain sunny/cloudy/partial
+reading once wind crosses a threshold; rain/snow always take priority over
+wind, since getting wet matters more than a breeze.
 
 ## Location
 
@@ -77,7 +86,7 @@ app/src/main/java/com/weatherwidget/app/
   LocationStore.kt             — SharedPreferences-backed list of searched/added cities
   LocationHelper.kt             — plain android.location.LocationManager fix (no Play Services)
   WeatherClient.kt                — HttpURLConnection call to Open-Meteo + JSON parsing
-  WeatherCondition.kt              — WMO weather code → Sunny / Cloudy / Raining
+  WeatherCondition.kt              — WMO weather code + wind speed → the six condition states
   WeatherCache.kt                   — SharedPreferences: last successful fetch, per location
   GeocodeHelper.kt                   — on-device Geocoder: lat/lon → city name, and city/ZIP → matches
   WeatherFormat.kt                    — shared temp/time/"Updated Xm ago" formatting

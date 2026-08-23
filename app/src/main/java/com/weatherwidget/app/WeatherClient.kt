@@ -23,10 +23,11 @@ object WeatherClient {
             val url = URL(
                 "https://api.open-meteo.com/v1/forecast" +
                     "?latitude=$lat&longitude=$lon" +
-                    "&current=temperature_2m,weather_code,is_day" +
-                    "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset" +
+                    "&current=temperature_2m,weather_code,is_day,wind_speed_10m" +
+                    "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max" +
                     "&forecast_days=6" + // today + the next 5 days
                     "&temperature_unit=fahrenheit" +
+                    "&wind_speed_unit=mph" +
                     "&timezone=auto"
             )
             val connection = url.openConnection() as HttpURLConnection
@@ -59,6 +60,7 @@ object WeatherClient {
         val lows = daily.optJSONArray("temperature_2m_min") ?: return null
         val sunrises = daily.optJSONArray("sunrise") ?: return null
         val sunsets = daily.optJSONArray("sunset") ?: return null
+        val winds = daily.optJSONArray("wind_speed_10m_max") ?: return null
         if (dates.length() == 0) return null
 
         val forecast = (1 until dates.length()).map { i ->
@@ -66,7 +68,8 @@ object WeatherClient {
                 dateLabel = dayLabel(dates.optString(i)),
                 highF = highs.optDouble(i),
                 lowF = lows.optDouble(i),
-                code = codes.optInt(i)
+                code = codes.optInt(i),
+                windSpeedMph = winds.optDouble(i)
             )
         }
 
@@ -75,6 +78,7 @@ object WeatherClient {
             tempF = current.optDouble("temperature_2m", Double.NaN).takeIf { !it.isNaN() } ?: return null,
             code = current.optInt("weather_code", 0),
             isDay = current.optInt("is_day", 1) == 1,
+            windSpeedMph = current.optDouble("wind_speed_10m", 0.0),
             sunrise = sunrises.optString(0),
             sunset = sunsets.optString(0),
             todayHighF = highs.optDouble(0),

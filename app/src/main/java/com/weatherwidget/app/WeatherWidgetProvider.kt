@@ -113,7 +113,6 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val locationStr: String
             val tempStr: String
             val todayHighLowStr: String
-            val conditionEmojiStr: String
             val conditionStr: String
             val sunriseStr: String
             val sunsetStr: String
@@ -124,9 +123,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 locationStr = widgetLocationLabel(snapshot.cityName ?: context.getString(R.string.current_location))
                 tempStr = WeatherFormat.tempString(snapshot.tempF, fahrenheit)
                 todayHighLowStr = WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit)
-                val condition = WeatherCondition.fromCode(snapshot.code)
-                conditionEmojiStr = condition.emoji(snapshot.isDay)
-                conditionStr = condition.label
+                conditionStr = snapshot.condition.label
                 sunriseStr = "↑ ${WeatherFormat.clockTime(snapshot.sunrise)}"
                 sunsetStr = "↓ ${WeatherFormat.clockTime(snapshot.sunset)}"
                 day1 = snapshot.forecast.getOrNull(0)
@@ -135,7 +132,6 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 locationStr = context.getString(R.string.app_title)
                 tempStr = "--°"
                 todayHighLowStr = "H:--°  L:--°"
-                conditionEmojiStr = ""
                 conditionStr = "--"
                 sunriseStr = "↑ --:--"
                 sunsetStr = "↓ --:--"
@@ -144,22 +140,27 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             }
             val forecast1HighLow = forecastHighLowString(day1, fahrenheit)
             val forecast2HighLow = forecastHighLowString(day2, fahrenheit)
+            val forecast1Condition = day1?.condition?.label ?: "--"
+            val forecast2Condition = day2?.condition?.label ?: "--"
 
             views.setTextViewText(R.id.locationText, locationStr)
             views.setTextViewText(R.id.tempText, tempStr)
             views.setTextViewText(R.id.todayHighLowText, todayHighLowStr)
-            views.setTextViewText(R.id.conditionEmoji, conditionEmojiStr)
             views.setTextViewText(R.id.conditionText, conditionStr)
             views.setTextViewText(R.id.sunriseText, sunriseStr)
             views.setTextViewText(R.id.sunsetText, sunsetStr)
             views.setTextViewText(R.id.updatedText, statusText)
-            bindForecastCell(views, day1, R.id.forecast1Day, R.id.forecast1Emoji, R.id.forecast1HighLow, forecast1HighLow)
-            bindForecastCell(views, day2, R.id.forecast2Day, R.id.forecast2Emoji, R.id.forecast2HighLow, forecast2HighLow)
+            views.setTextViewText(R.id.forecast1Day, day1?.dateLabel ?: "--")
+            views.setTextViewText(R.id.forecast1HighLow, forecast1HighLow)
+            views.setTextViewText(R.id.forecast1Condition, forecast1Condition)
+            views.setTextViewText(R.id.forecast2Day, day2?.dateLabel ?: "--")
+            views.setTextViewText(R.id.forecast2HighLow, forecast2HighLow)
+            views.setTextViewText(R.id.forecast2Condition, forecast2Condition)
 
             applyResponsiveSizing(
                 context, views, manager, id, statusText,
                 tempStr, todayHighLowStr, locationStr, conditionStr, sunriseStr, sunsetStr,
-                forecast1HighLow, forecast2HighLow
+                forecast1HighLow, forecast2HighLow, forecast1Condition, forecast2Condition
             )
             setClickIntent(context, views, id)
             return views
@@ -174,18 +175,13 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         private fun forecastHighLowString(day: DailyForecast?, fahrenheit: Boolean): String =
             if (day != null) "${WeatherFormat.tempString(day.highF, fahrenheit)}/${WeatherFormat.tempString(day.lowF, fahrenheit)}" else "--°/--°"
 
-        private fun bindForecastCell(views: RemoteViews, day: DailyForecast?, dayId: Int, emojiId: Int, highLowId: Int, highLowText: String) {
-            views.setTextViewText(dayId, day?.dateLabel ?: "--")
-            views.setTextViewText(emojiId, if (day != null) WeatherCondition.fromCode(day.code).emoji(true) else "")
-            views.setTextViewText(highLowId, highLowText)
-        }
-
         /**
          * COMPACT (roughly a 1x1/2x1 grid cell) drops to just the temperature,
-         * location, and condition icon — genuinely too little room for more. Every
+         * location, and condition word — genuinely too little room for more. Every
          * other size gets the FULL layout: today's high/low, sunrise/sunset (each on
          * their own line), and the two-day forecast row filling the bottom half.
          * Padding is always a visible constant margin either way, never near-zero.
+         * No icons anywhere in this widget, by request — condition is always words.
          *
          * Every text size below is a *maximum* — fitWidthSp() measures the actual
          * string against the column it has to live in and shrinks from there if
@@ -196,7 +192,8 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         private fun applyResponsiveSizing(
             context: Context, views: RemoteViews, manager: AppWidgetManager, id: Int, statusText: String,
             tempStr: String, todayHighLowStr: String, locationStr: String, conditionStr: String,
-            sunriseStr: String, sunsetStr: String, forecast1HighLow: String, forecast2HighLow: String
+            sunriseStr: String, sunsetStr: String, forecast1HighLow: String, forecast2HighLow: String,
+            forecast1Condition: String, forecast2Condition: String
         ) {
             val options = manager.getAppWidgetOptions(id)
             val minHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
@@ -218,32 +215,37 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val tempMaxSp = if (tier == WidgetSizeTier.FULL) 56f else 30f
             setSp(views, R.id.tempText, fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true))
             setSp(views, R.id.locationText, fitWidthSp(context, locationStr, halfColumnPx, if (tier == WidgetSizeTier.FULL) 16f else 11f, 9f, bold = true))
-            setSp(views, R.id.conditionEmoji, if (tier == WidgetSizeTier.FULL) 18f else 13f)
+            // conditionText stays visible at every size (it's the only thing telling you
+            // sunny/cloudy/rainy/etc. now that there's no icon) — just smaller when tight.
+            setSp(views, R.id.conditionText, fitWidthSp(context, conditionStr, halfColumnPx, if (tier == WidgetSizeTier.FULL) 14f else 11f, 8f, bold = true))
 
             if (tier == WidgetSizeTier.FULL) {
                 setSp(views, R.id.todayHighLowText, fitWidthSp(context, todayHighLowStr, halfColumnPx, 14f, 10f, bold = true))
-                // conditionText shares its line with the emoji, so give it a bit less than the full column.
-                setSp(views, R.id.conditionText, fitWidthSp(context, conditionStr, halfColumnPx * 0.75f, 14f, 10f, bold = true))
                 setSp(views, R.id.sunriseText, fitWidthSp(context, sunriseStr, halfColumnPx, 13f, 10f, bold = false))
                 setSp(views, R.id.sunsetText, fitWidthSp(context, sunsetStr, halfColumnPx, 13f, 10f, bold = false))
 
                 // Both forecast cells use the smaller of the two needed sizes, so they stay
                 // visually matched instead of one day's number being bigger than the other's.
-                val forecastSp = minOf(
+                val forecastHighLowSp = minOf(
                     fitWidthSp(context, forecast1HighLow, halfColumnPx, 13f, 9f, bold = false),
                     fitWidthSp(context, forecast2HighLow, halfColumnPx, 13f, 9f, bold = false)
                 )
-                setSp(views, R.id.forecast1HighLow, forecastSp)
-                setSp(views, R.id.forecast2HighLow, forecastSp)
+                setSp(views, R.id.forecast1HighLow, forecastHighLowSp)
+                setSp(views, R.id.forecast2HighLow, forecastHighLowSp)
                 setSp(views, R.id.forecast1Day, 13f)
                 setSp(views, R.id.forecast2Day, 13f)
-                setSp(views, R.id.forecast1Emoji, 20f)
-                setSp(views, R.id.forecast2Emoji, 20f)
+
+                // Same "smaller of the two" matching for the condition word underneath each day.
+                val forecastConditionSp = minOf(
+                    fitWidthSp(context, forecast1Condition, halfColumnPx, 11f, 8f, bold = false),
+                    fitWidthSp(context, forecast2Condition, halfColumnPx, 11f, 8f, bold = false)
+                )
+                setSp(views, R.id.forecast1Condition, forecastConditionSp)
+                setSp(views, R.id.forecast2Condition, forecastConditionSp)
             }
             setSp(views, R.id.updatedText, 10f)
 
             views.setViewVisibility(R.id.todayHighLowText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.conditionText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.sunRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.forecastRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.updatedText, if (statusText.isNotEmpty()) View.VISIBLE else View.GONE)
