@@ -18,6 +18,7 @@
     <string name="unit_fahrenheit">°F</string>
     <string name="unit_celsius">°C</string>
     <string name="forecast_header">5-Day Forecast</string>
+    <string name="converter_header">°F ⇄ °C Converter</string>
     <string name="widget_today_label">TODAY</string>
 
     <string name="tab_current">Current</string>

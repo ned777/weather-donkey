@@ -4,7 +4,9 @@ import android.Manifest
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Editable
 import android.text.InputType
+import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -59,9 +61,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var removeLocationButton: TextView
     private lateinit var forecastHeader: TextView
     private lateinit var forecastContainer: LinearLayout
+    private lateinit var fahrenheitInput: EditText
+    private lateinit var celsiusInput: EditText
 
     private var savedLocations: List<SavedLocation> = emptyList()
     private var activeLocationId: String = WeatherCache.CURRENT_LOCATION_ID
+
+    // Guards against the two converter boxes' TextWatchers feeding off each other —
+    // set right before/after a programmatic setText() on the OTHER box.
+    private var isConvertingTemp = false
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -94,9 +102,12 @@ class MainActivity : AppCompatActivity() {
         removeLocationButton = findViewById(R.id.removeLocationButton)
         forecastHeader = findViewById(R.id.forecastHeader)
         forecastContainer = findViewById(R.id.forecastContainer)
+        fahrenheitInput = findViewById(R.id.fahrenheitInput)
+        celsiusInput = findViewById(R.id.celsiusInput)
 
         swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.retro_cyan))
         swipeRefresh.setOnRefreshListener { startRefresh() }
+        setupTempConverter()
 
         grantPermissionButton.setOnClickListener {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -376,5 +387,41 @@ class MainActivity : AppCompatActivity() {
             row.findViewById<TextView>(R.id.windText).text = WeatherFormat.windString(day.windSpeedMph)
             forecastContainer.addView(row)
         }
+    }
+
+    // Standalone unit converter at the bottom of the screen — unrelated to the weather
+    // display above (no location, no tabs, just arithmetic). Typing in one box live-fills
+    // the other; isConvertingTemp stops that programmatic setText() from re-triggering
+    // the watcher on the box that was just filled in, which would otherwise loop forever.
+    private fun setupTempConverter() {
+        fahrenheitInput.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (isConvertingTemp) return
+                val f = s?.toString()?.toDoubleOrNull()
+                isConvertingTemp = true
+                celsiusInput.setText(if (f != null) formatConvertedTemp((f - 32.0) * 5.0 / 9.0) else "")
+                isConvertingTemp = false
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        celsiusInput.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (isConvertingTemp) return
+                val c = s?.toString()?.toDoubleOrNull()
+                isConvertingTemp = true
+                fahrenheitInput.setText(if (c != null) formatConvertedTemp(c * 9.0 / 5.0 + 32.0) else "")
+                isConvertingTemp = false
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+    }
+
+    private fun formatConvertedTemp(value: Double): String {
+        val rounded = Math.round(value * 10.0) / 10.0
+        // Whole numbers show without a trailing ".0" — 37.0 reads as "37", 37.2 stays "37.2".
+        return if (rounded == rounded.toLong().toDouble()) rounded.toLong().toString() else rounded.toString()
     }
 }

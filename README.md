@@ -13,14 +13,17 @@ periodic timer, no cloud relay of your own.**
   Geocoder — no key, no second API) and add a match as its own tab. Each
   tab keeps its own independently cached weather and its own independent
   refresh.
-- **Huge, outlined, auto-sizing temperature** — single-digit readings render
-  as large as the screen allows; a double-digit (or negative) reading
-  shrinks itself down just enough to keep fitting the width, via Android's
-  built-in text autosizing. The outline effect (`OutlinedTextView.kt`) draws
-  the glyph twice — stroked, then filled — since there's no built-in
-  "outlined text" attribute.
-- **°F / °C toggle** — a pure display switch. Flipping it reformats
-  whatever's already cached instantly; it never triggers a new fetch.
+- **Huge, hollow, glowing-outline temperature** — no solid fill at all, just
+  a stroked outline in the theme's cyan (`OutlinedTextView.kt`, since Android
+  has no built-in outline-text attribute), with the existing glow shadow
+  sitting on both sides of that stroke line. Sized by measuring the actual
+  string against the real available width and picking the largest size that
+  still fits on one line (`MainActivity.applyTempTextSize()`) — a
+  double-digit or negative reading shrinks itself down just enough rather
+  than wrapping or overflowing.
+- **°F / °C toggle** (for the weather display) — a pure display switch.
+  Flipping it reformats whatever's already cached instantly; it never
+  triggers a new fetch.
 - **5-day forecast** — today's high/low plus the next 5 days, each with its
   own condition and a flat vector icon (`res/drawable/ic_weather_*.xml`) —
   no emoji, plain solid-color shapes in the app's own retro palette. Rain
@@ -28,6 +31,10 @@ periodic timer, no cloud relay of your own.**
   each row, with a thin divider between rows.
 - **Pull down to refresh** — no separate Refresh button; swipe down on any
   tab to fetch that tab's location.
+- **Standalone °F ⇄ °C converter** at the bottom of the screen — two plain
+  number boxes, unrelated to the weather display above (no location, no
+  network call, just arithmetic). Typing in either one live-fills in the
+  other.
 
 ## Each widget can watch a different location
 
@@ -79,7 +86,7 @@ app/src/main/java/com/weatherwidget/app/
   WeatherWidgetConfigActivity.kt — per-widget location picker, shown when adding a widget
   WidgetLocationBinding.kt        — SharedPreferences: which location each widget id watches
   MainActivity.kt                   — tabs, search dialog, unit toggle, 5-day forecast, pull-to-refresh
-  OutlinedTextView.kt                — stroke+fill "outlined" TextView, used for the app's temp number
+  OutlinedTextView.kt                — hollow, stroke-only "outlined" TextView, used for the app's temp number
   LocationStore.kt                    — SharedPreferences-backed list of searched/added cities
   LocationHelper.kt                    — plain android.location.LocationManager fix (no Play Services)
   WeatherClient.kt                      — HttpURLConnection call to Open-Meteo + JSON parsing
