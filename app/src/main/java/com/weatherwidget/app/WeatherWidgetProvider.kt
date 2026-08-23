@@ -343,7 +343,8 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 val rightColHeightPx = textHeightPx(context, todaySp, bold = true) +
                     textHeightPx(context, conditionSp, bold = true) +
                     textHeightPx(context, sunriseSp, bold = false) +
-                    textHeightPx(context, sunsetSp, bold = false)
+                    textHeightPx(context, sunsetSp, bold = false) -
+                    dpToPx(context, 3) // matches sunsetText's negative marginTop in widget_weather.xml
                 val topRowHeightPx = maxOf(leftColHeightPx, rightColHeightPx)
                 val updatedHeightPx = textHeightPx(context, 10f, bold = false)
                 val totalHeightPx = dpToPx(context, minHeightDp).toFloat()

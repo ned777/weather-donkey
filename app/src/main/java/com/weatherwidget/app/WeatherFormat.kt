@@ -9,8 +9,10 @@ import java.util.Locale
 
 /** Shared formatting for both the widget and MainActivity, so the two never drift apart. */
 object WeatherFormat {
-    private val clockFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
-    private val lastUpdatedFormatter = DateTimeFormatter.ofPattern("h:mm a · MMM d · zzz", Locale.getDefault())
+    // 24-hour, zero-padded, no AM/PM — by request, everywhere a clock time shows up
+    // in the app or widget.
+    private val clockFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+    private val lastUpdatedFormatter = DateTimeFormatter.ofPattern("HH:mm · MMM d · zzz", Locale.getDefault())
 
     /** Open-Meteo returns sunrise/sunset as local time already (timezone=auto), e.g. "2026-08-22T06:32". */
     fun clockTime(isoLocalDateTime: String): String = try {
@@ -44,7 +46,7 @@ object WeatherFormat {
         }
     }
 
-    /** e.g. "3:45 PM · Aug 23 · PDT" — the widget's bottom status line once data has loaded. */
+    /** e.g. "15:45 · Aug 23 · PDT" — the widget's bottom status line once data has loaded. */
     fun lastUpdatedTimestamp(fetchedAt: Long): String =
         ZonedDateTime.ofInstant(Instant.ofEpochMilli(fetchedAt), ZoneId.systemDefault()).format(lastUpdatedFormatter)
 }
