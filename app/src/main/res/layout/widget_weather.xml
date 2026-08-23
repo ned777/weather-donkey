@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Layout: city name centered at the very top (white), then big current temp
-  top-left with today's high/low under it, "TODAY" / condition / sunrise-
-  sunset stacked tight (no vertical gap) top-right, and a two-day forecast
-  row filling the bottom half — each forecast cell shows day/high-low/
-  condition, no icon anywhere in this widget (by request). Every row
-  below cityText is toggled visible/gone in code (WeatherWidgetProvider —
+  Layout: city name centered at the very top (white), then a 2x2 grid of
+  four equal-sized, equally-spaced groups — current temp + today's high/low
+  (top-left), "TODAY" / condition / sunrise-sunset (top-right), and the
+  next two days' forecast (bottom-left/right, each showing day/high-low/
+  condition, no icon by request). topRow and forecastRow share weight="1"
+  so they split the remaining height into equal halves, and every cell has
+  a matching 4dp+4dp margin against its neighbor so the horizontal gap
+  between columns matches the vertical gap between rows. Every row below
+  cityText is toggled visible/gone in code (WeatherWidgetProvider —
   buildViews()) based on the widget's current on-screen size. All text is set
   in code; nothing here ever changes except through that.
 -->
@@ -37,10 +40,14 @@
 
     <!-- baselineAligned="false" — otherwise Android vertically aligns this row's two
          columns by their FIRST line's text baseline, which visually shoves the "TODAY"
-         column upward relative to the much-larger temperature number next to it. -->
+         column upward relative to the much-larger temperature number next to it.
+         Same weight="1" as forecastRow below, so the current-weather/TODAY row and the
+         two-day-forecast row split the remaining vertical space into equal halves. -->
     <LinearLayout
+        android:id="@+id/topRow"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="horizontal"
         android:baselineAligned="false"
         android:layout_marginTop="2dp">
@@ -49,9 +56,10 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
             android:orientation="vertical"
-            android:gravity="start">
+            android:gravity="start|center_vertical">
 
             <TextView
                 android:id="@+id/tempText"
@@ -85,9 +93,10 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="4dp"
             android:orientation="vertical"
-            android:gravity="end">
+            android:gravity="end|center_vertical">
 
             <TextView
                 android:id="@+id/todayLabelText"
@@ -166,6 +175,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
             android:orientation="vertical"
             android:gravity="center">
 
@@ -205,6 +215,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
+            android:layout_marginStart="4dp"
             android:orientation="vertical"
             android:gravity="center">
 

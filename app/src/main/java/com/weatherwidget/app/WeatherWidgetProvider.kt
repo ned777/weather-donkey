@@ -254,17 +254,17 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val verticalPaddingPx = dpToPx(context, verticalPaddingDp)
             views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, verticalPaddingPx, paddingPx, verticalPaddingPx)
 
-            // Both the top row's two columns and the forecast row's two cells split the
-            // remaining width 50/50 with no gap between them (see widget_weather.xml) —
-            // one shared "half column" width, minus a small buffer so text never rides
-            // right up against the middle. The city name spans the FULL width instead.
+            // Both the top row's two columns and the forecast row's two cells now carry a
+            // real 4dp+4dp margin against their neighbor (see widget_weather.xml), so the
+            // horizontal gap between columns matches the vertical gap between topRow and
+            // forecastRow. The city name spans the FULL width instead.
             val widthPx = dpToPx(context, minWidthDp)
             val fullWidthPx = (widthPx - 2 * paddingPx).toFloat().coerceAtLeast(0f)
-            val halfColumnPx = (fullWidthPx / 2f - dpToPx(context, 4)).coerceAtLeast(0f)
+            val columnGapPx = dpToPx(context, 8)
+            val halfColumnPx = ((fullWidthPx - columnGapPx) / 2f).coerceAtLeast(0f)
 
             val tempMaxSp = if (tier == WidgetSizeTier.FULL) 50f else 27f
-            val tempSp = fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true)
-            setSp(context, views, R.id.tempText, tempSp)
+            var tempSp = fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true)
 
             // Day label and condition word (forecastLabelSp) is computed up front — at
             // FULL tier, "TODAY" and the city name both match it exactly (by request),
@@ -290,16 +290,12 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
             // conditionText stays visible at every size (it's the only thing telling you
             // sunny/cloudy/rainy/etc. now that there's no icon) — just smaller when tight.
-            val conditionSp = fitWidthSp(context, conditionStr, halfColumnPx, if (tier == WidgetSizeTier.FULL) 14f else 11f, 8f, bold = true)
-            setSp(context, views, R.id.conditionText, conditionSp)
+            var conditionSp = fitWidthSp(context, conditionStr, halfColumnPx, if (tier == WidgetSizeTier.FULL) 14f else 11f, 8f, bold = true)
 
             if (tier == WidgetSizeTier.FULL) {
-                val todayHighLowSp = fitWidthSp(context, todayHighLowStr, halfColumnPx, 14f, 10f, bold = true)
-                val sunriseSp = fitWidthSp(context, sunriseStr, halfColumnPx, 13f, 10f, bold = false)
-                val sunsetSp = fitWidthSp(context, sunsetStr, halfColumnPx, 13f, 10f, bold = false)
-                setSp(context, views, R.id.todayHighLowText, todayHighLowSp)
-                setSp(context, views, R.id.sunriseText, sunriseSp)
-                setSp(context, views, R.id.sunsetText, sunsetSp)
+                var todayHighLowSp = fitWidthSp(context, todayHighLowStr, halfColumnPx, 14f, 10f, bold = true)
+                var sunriseSp = fitWidthSp(context, sunriseStr, halfColumnPx, 13f, 10f, bold = false)
+                var sunsetSp = fitWidthSp(context, sunsetStr, halfColumnPx, 13f, 10f, bold = false)
 
                 // Both forecast cells use the smaller of the two needed sizes, so they stay
                 // visually matched instead of one day's number being bigger than the other's.
@@ -309,49 +305,65 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 )
                 var finalForecastLabelSp = forecastLabelSp
 
-                // Width-fitting alone isn't enough — the forecast cell stacks THREE lines
-                // (day/high-low/condition) inside forecastRow's fixed, weighted height.
-                // Nothing had ever checked whether that stack's total height actually fits,
-                // so a line could get silently clipped by the parent even though each line
-                // individually fit its column's width. Measure the real vertical budget
-                // (total height minus padding, the top row, and every margin/line around
-                // it) and shrink the forecast text uniformly if the stack is taller than
-                // what's actually left for it.
+                // topRow and forecastRow both carry weight="1" now (see widget_weather.xml),
+                // so Android always gives them EXACTLY equal heights regardless of content —
+                // that shared half is the real vertical budget each one has to fit within,
+                // not just an estimate.
                 val cityHeightPx = textHeightPx(context, todaySp, bold = true)
-                val leftColHeightPx = textHeightPx(context, tempSp, bold = true) +
+                val updatedHeightPx = textHeightPx(context, 10f, bold = false)
+                val totalHeightPx = dpToPx(context, minHeightDp).toFloat()
+                val availableContentHeightPx = (
+                    totalHeightPx - 2 * verticalPaddingPx - cityHeightPx -
+                        dpToPx(context, 2) - dpToPx(context, 8) -
+                        dpToPx(context, 4) - updatedHeightPx
+                    ).coerceAtLeast(0f)
+                val halfContentHeightPx = availableContentHeightPx / 2f
+
+                // Width-fitting alone isn't enough for either row — the top row stacks two
+                // lines (temp/high-low) against three (TODAY/condition/sunrise+sunset), and
+                // the forecast cells stack three (day/high-low/condition). Shrink each row's
+                // text uniformly if its taller side doesn't fit the equal half it now has.
+                val topLeftColHeightPx = textHeightPx(context, tempSp, bold = true) +
                     textHeightPx(context, todayHighLowSp, bold = true)
-                val rightColHeightPx = textHeightPx(context, todaySp, bold = true) +
+                val topRightColHeightPx = textHeightPx(context, todaySp, bold = true) +
                     textHeightPx(context, conditionSp, bold = true) +
                     textHeightPx(context, sunriseSp, bold = false) +
                     textHeightPx(context, sunsetSp, bold = false) -
                     dpToPx(context, 6) // matches conditionText's and sunsetText's negative marginTop in widget_weather.xml
-                val topRowHeightPx = maxOf(leftColHeightPx, rightColHeightPx)
-                val updatedHeightPx = textHeightPx(context, 10f, bold = false)
-                val totalHeightPx = dpToPx(context, minHeightDp).toFloat()
-
-                val forecastAvailableHeightPx = (
-                    totalHeightPx - 2 * verticalPaddingPx - cityHeightPx -
-                        dpToPx(context, 2) - topRowHeightPx -
-                        dpToPx(context, 8) - dpToPx(context, 4) - updatedHeightPx
-                    ).coerceAtLeast(0f)
+                val topRowNaturalHeightPx = maxOf(topLeftColHeightPx, topRightColHeightPx)
+                if (topRowNaturalHeightPx > halfContentHeightPx && topRowNaturalHeightPx > 0f) {
+                    val scale = halfContentHeightPx / topRowNaturalHeightPx
+                    tempSp = (tempSp * scale).coerceAtLeast(tempMaxSp * 0.3f)
+                    todayHighLowSp = (todayHighLowSp * scale).coerceAtLeast(7f)
+                    conditionSp = (conditionSp * scale).coerceAtLeast(7f)
+                    sunriseSp = (sunriseSp * scale).coerceAtLeast(7f)
+                    sunsetSp = (sunsetSp * scale).coerceAtLeast(7f)
+                }
 
                 val neededStackHeightPx = textHeightPx(context, finalForecastLabelSp, bold = true) +
                     textHeightPx(context, forecastHighLowSp, bold = false) +
                     textHeightPx(context, finalForecastLabelSp, bold = false) -
                     dpToPx(context, 3) // matches forecastCondition's negative marginTop in widget_weather.xml
-
-                if (neededStackHeightPx > forecastAvailableHeightPx && neededStackHeightPx > 0f) {
-                    val scale = forecastAvailableHeightPx / neededStackHeightPx
+                if (neededStackHeightPx > halfContentHeightPx && neededStackHeightPx > 0f) {
+                    val scale = halfContentHeightPx / neededStackHeightPx
                     finalForecastLabelSp = (finalForecastLabelSp * scale).coerceAtLeast(7f)
                     forecastHighLowSp = (forecastHighLowSp * scale).coerceAtLeast(7f)
                 }
 
+                setSp(context, views, R.id.tempText, tempSp)
+                setSp(context, views, R.id.conditionText, conditionSp)
+                setSp(context, views, R.id.todayHighLowText, todayHighLowSp)
+                setSp(context, views, R.id.sunriseText, sunriseSp)
+                setSp(context, views, R.id.sunsetText, sunsetSp)
                 setSp(context, views, R.id.forecast1HighLow, forecastHighLowSp)
                 setSp(context, views, R.id.forecast2HighLow, forecastHighLowSp)
                 setSp(context, views, R.id.forecast1Day, finalForecastLabelSp)
                 setSp(context, views, R.id.forecast2Day, finalForecastLabelSp)
                 setSp(context, views, R.id.forecast1Condition, finalForecastLabelSp)
                 setSp(context, views, R.id.forecast2Condition, finalForecastLabelSp)
+            } else {
+                setSp(context, views, R.id.tempText, tempSp)
+                setSp(context, views, R.id.conditionText, conditionSp)
             }
             setSp(context, views, R.id.updatedText, 10f)
 
