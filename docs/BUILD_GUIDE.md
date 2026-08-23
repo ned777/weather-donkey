@@ -250,10 +250,10 @@ system `PATH` and a device connected, `./gradlew installDebug` builds
 
 ## 11. Where to go next
 
-Once you're comfortable with the edit → Run → look loop, the main
-[README.md](../README.md) explains *what the app does* and lists every
-Kotlin file with a one-line description of its job — that's the map for
-actually reading and understanding the code itself, not just building it.
-A good first real read: `WeatherCondition.kt` (short, and shows how raw
-weather data becomes "Sunny"/"Rainy"/etc.), then `MainActivity.kt` for
-the bigger picture.
+Once you're comfortable with the edit → Run → look loop, read
+[HOW_IT_WORKS.md](HOW_IT_WORKS.md) next — it explains *how the app and
+widget are actually coded*: the architecture, why the code is shaped the
+way it is, and what each source file teaches. Every source file also has
+inline comments now explaining the Kotlin/Android building blocks the
+first time each one appears, so reading the code itself alongside that
+guide is the natural next step.

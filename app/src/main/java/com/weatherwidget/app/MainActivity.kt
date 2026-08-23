@@ -38,6 +38,11 @@ import kotlin.math.abs
  * down to refresh, or granting location permission for the first time
  * (itself an explicit tap).
  */
+// `class MainActivity : AppCompatActivity()` — an Activity is Android's term for
+// "one full screen the user can be looking at." AppCompatActivity is the standard
+// base class that provides the modern toolbar/theme support; `:` here means MainActivity
+// IS one of these (inheritance), and can override its lifecycle methods below like
+// onCreate(). This screen is declared as the app's entry point in AndroidManifest.xml.
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -49,6 +54,12 @@ class MainActivity : AppCompatActivity() {
         private const val TEMP_SIDE_MARGIN_DP = 8f
     }
 
+    // `lateinit var` is a promise to Kotlin: "this will definitely be set before
+    // anything reads it, just not right here at declaration time." Each of these
+    // views can't actually be created until setContentView() runs in onCreate() below
+    // (that's what turns activity_main.xml into real on-screen objects) — lateinit
+    // avoids needing every one of these to be nullable (`SwipeRefreshLayout?`) just to
+    // cover the brief moment before onCreate() has run.
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var tabLayout: TabLayout
     private lateinit var fahrenheitButton: Button
@@ -104,6 +115,11 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    // registerForActivityResult is the modern Android API for "ask the user for
+    // something (here, a permission) and run this code once they've answered."
+    // `{ granted -> ... }` is a lambda — an inline, unnamed function — that Android
+    // calls later with the result (`granted`, a Boolean) once the user taps
+    // Allow/Deny on the system permission dialog.
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             grantPermissionButton.visibility = if (granted) View.GONE else View.VISIBLE
@@ -115,10 +131,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    // onCreate() is the first lifecycle method Android calls when this screen is
+    // being built — the standard place to inflate the layout and wire everything up.
+    // `override` means this replaces AppCompatActivity's default version, and
+    // `super.onCreate(...)` still runs that original version first so the base class
+    // gets to do its own setup too.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Turns res/layout/activity_main.xml into real on-screen View objects.
         setContentView(R.layout.activity_main)
 
+        // findViewById looks up one of those real views by the android:id it was
+        // given in the XML — this is what connects a Kotlin variable to a specific
+        // box/button/text drawn on screen.
         swipeRefresh = findViewById(R.id.swipeRefresh)
         tabLayout = findViewById(R.id.tabLayout)
         fahrenheitButton = findViewById(R.id.fahrenheitButton)
@@ -247,6 +272,13 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    // This method demonstrates a pattern used throughout the app: Android runs all UI
+    // code on one single "main thread," and anything slow (network calls, this geocode
+    // lookup) would freeze the whole screen if run there directly. `Thread { ... }.start()`
+    // spins up a separate background thread to do the slow work instead. But that
+    // background thread also ISN'T allowed to touch the UI directly — so once it has a
+    // result, `runOnUiThread { ... }` hands a small block of code back to the main
+    // thread to actually update what's on screen.
     private fun performLocationSearch(query: String) {
         Thread {
             val results = GeocodeHelper.search(this, query)
@@ -463,6 +495,10 @@ class MainActivity : AppCompatActivity() {
     // display above (no location, no tabs, just arithmetic). Typing in one box live-fills
     // the other; isConvertingTemp stops that programmatic setText() from re-triggering
     // the watcher on the box that was just filled in, which would otherwise loop forever.
+    // `object : TextWatcher { ... }` creates a one-off, unnamed implementation of the
+    // TextWatcher interface right here inline — Kotlin/Java's way of passing "an object
+    // that responds to these specific events" without declaring a whole separate named
+    // class for it. Android calls afterTextChanged() every time the text in the box changes.
     private fun setupTempConverter() {
         fahrenheitInput.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {

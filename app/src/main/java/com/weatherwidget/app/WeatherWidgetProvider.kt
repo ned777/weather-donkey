@@ -33,6 +33,11 @@ private enum class WidgetSizeTier { COMPACT, FULL }
  * first placement, reboot, and resize) only ever repaint from whatever is
  * already cached.
  */
+// AppWidgetProvider is a special-purpose BroadcastReceiver — a component Android
+// wakes up briefly to handle one event, then lets go dormant again, rather than a
+// screen the user is looking at (that's what MainActivity is). Home-screen widgets
+// don't run continuously; Android calls into this class only at specific moments:
+// when a widget is first placed, resized, removed, or (via onReceive below) tapped.
 class WeatherWidgetProvider : AppWidgetProvider() {
 
     companion object {
@@ -137,6 +142,13 @@ class WeatherWidgetProvider : AppWidgetProvider() {
          * we have location permission yet — see setClickIntent below). An empty
          * statusText means "nothing wrong to report" and hides that line entirely.
          */
+        // RemoteViews is a special stand-in for a normal layout: a widget's UI is
+        // actually drawn by the HOME SCREEN LAUNCHER app, not by this app's own process,
+        // so this code can't just grab views with findViewById and set properties on
+        // them directly the way MainActivity does. Instead, RemoteViews records a list
+        // of instructions ("set this TextView's text to X", "set this view's size to Y")
+        // that gets handed across to the launcher process, which then actually applies
+        // them and draws the result.
         private fun buildViews(context: Context, manager: AppWidgetManager, id: Int, locationId: String, snapshot: WeatherSnapshot?, statusText: String): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.widget_weather)
             val fahrenheit = UnitPreference.isFahrenheit(context)
@@ -427,6 +439,12 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         // only an Activity can show the system permission dialog. Only the "current"
         // (GPS) binding ever needs that fallback; a widget bound to a searched city
         // never needs location permission at all, so it always just refreshes.
+        // A PendingIntent is a "voucher" for an Intent (Android's message for "do this
+        // action") that lets a DIFFERENT process — here, the home-screen launcher app,
+        // since it's the one that actually detects the tap on this RemoteViews content —
+        // trigger it later, on our app's behalf, as if our own app had triggered it. This
+        // is the only way a widget can respond to a tap, since RemoteViews content has no
+        // click listeners of its own the way a normal button would.
         private fun setClickIntent(context: Context, views: RemoteViews, id: Int, locationId: String) {
             val needsPermission = locationId == WeatherCache.CURRENT_LOCATION_ID && !LocationHelper.hasPermission(context)
             val pendingIntent = if (!needsPermission) {
@@ -480,6 +498,12 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             // HTTP call, both of which can take real time, but a BroadcastReceiver is
             // normally expected to finish in milliseconds and would otherwise get killed
             // mid-fetch.
+            // A BroadcastReceiver's onReceive() is normally expected to return within
+            // milliseconds — Android may kill the process once it returns, assuming the
+            // work is done. goAsync() tells Android "wait, I'm not finished yet," buying
+            // extra time for the background Thread below to actually complete the
+            // location fix + network call; pending.finish() in the `finally` block then
+            // signals "okay, NOW I'm really done."
             val pending = goAsync()
             Thread {
                 try {

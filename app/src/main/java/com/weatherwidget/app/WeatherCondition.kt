@@ -8,6 +8,9 @@ package com.weatherwidget.app
  * crosses WINDY_THRESHOLD_MPH; rain/snow still take priority over it either
  * way, since getting wet matters more than a breeze.
  */
+// An `enum class` is a fixed, named list of possible values — here, the six
+// weather states the app ever shows. `(val label: String)` means every entry
+// carries its own label string, e.g. SUNNY carries "Sunny" alongside it.
 enum class WeatherCondition(val label: String) {
     SUNNY("Sunny"),
     PARTIAL("Partial"),
@@ -26,6 +29,10 @@ enum class WeatherCondition(val label: String) {
         SNOWY -> R.drawable.ic_weather_snowy
     }
 
+    // A `companion object` holds members that belong to WeatherCondition ITSELF
+    // rather than to one specific entry like SUNNY or RAINY — that's what lets
+    // callers elsewhere write `WeatherCondition.fromCodeAndWind(...)` without
+    // needing an instance first, similar to a "static" method in other languages.
     companion object {
         private const val WINDY_THRESHOLD_MPH = 20.0
 

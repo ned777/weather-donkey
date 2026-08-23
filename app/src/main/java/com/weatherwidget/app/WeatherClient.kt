@@ -15,9 +15,18 @@ import java.util.Locale
  * preference — see WeatherFormat for the Celsius conversion used only at
  * render time, so flipping the unit toggle never needs a new network call.
  */
+// `object` (instead of `class`) declares a SINGLETON — Kotlin creates exactly
+// one instance of WeatherClient automatically, the first time it's touched,
+// and every caller shares that same instance. There's never a reason to have
+// two WeatherClients, so this skips the usual `WeatherClient().fetchWeather(...)`
+// and lets callers just write `WeatherClient.fetchWeather(...)` directly.
 object WeatherClient {
     private val dayLabelFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
 
+    // The `: WeatherSnapshot?` return type — with a `?` — means this function can
+    // return either a real WeatherSnapshot OR `null`. Kotlin forces every caller to
+    // handle both cases (e.g. `WeatherClient.fetchWeather(...) ?: return`) instead of
+    // letting a missing result silently crash later, which is what "null safety" means.
     fun fetchWeather(lat: Double, lon: Double): WeatherSnapshot? {
         return try {
             val url = URL(
@@ -30,6 +39,10 @@ object WeatherClient {
                     "&wind_speed_unit=mph" +
                     "&timezone=auto"
             )
+            // HttpURLConnection is the plain-Java way to make an HTTP request — no extra
+            // library needed. It's a blocking call (the line waits here until the server
+            // responds), which is exactly why fetchWeather() is always run on a background
+            // Thread by its callers, never directly on the UI thread.
             val connection = url.openConnection() as HttpURLConnection
             connection.connectTimeout = 6000
             connection.readTimeout = 6000

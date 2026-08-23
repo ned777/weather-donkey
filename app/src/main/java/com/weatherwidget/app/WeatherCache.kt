@@ -4,6 +4,9 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 
+// `data class` is Kotlin's shorthand for a plain value-holder: listing the fields once
+// in the constructor automatically gives you equals()/toString()/copy() for free, so
+// there's no boilerplate to write by hand for a type that's just "a bundle of fields."
 /** One day's high/low/condition, used for the 5-day forecast list and the widget's 2-day row. */
 data class DailyForecast(
     val dateLabel: String,
@@ -114,6 +117,12 @@ object WeatherCache {
     private const val PREFS_NAME = "weather"
     private const val KEY_SNAPSHOT_PREFIX = "snapshot_json_"
 
+    // SharedPreferences is Android's built-in tiny key-value store — good for small
+    // settings/state like this, not for large structured data (which is why the
+    // WeatherSnapshot itself gets serialized to a single JSON string first, rather
+    // than trying to store each of its fields as a separate preference key).
+    // `.edit()` opens a batch of changes, and `.apply()` saves them all to disk in
+    // the background — the standard read/modify/write pattern for SharedPreferences.
     fun save(context: Context, locationId: String, snapshot: WeatherSnapshot) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
             .putString(KEY_SNAPSHOT_PREFIX + locationId, snapshot.toJson())

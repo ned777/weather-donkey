@@ -49,7 +49,16 @@ object LocationHelper {
         // Looper to deliver its callback on; the calling thread (a background Thread
         // started by the widget/activity) doesn't have one, so we spin up a short-lived
         // HandlerThread just to receive this one callback.
+        // A plain background Thread has no built-in way to *receive* a callback later —
+        // Android's location APIs need a "Looper" (a loop that waits for and delivers
+        // messages) to post their result onto, and only a HandlerThread comes with one
+        // ready-made. This spins up a short-lived thread purely to catch that one callback.
         val handlerThread = HandlerThread("WeatherLocationUpdate").apply { start() }
+        // CountDownLatch(1) is a simple way to make ONE thread (this function's caller)
+        // pause and wait until another thread (the location callback below) signals
+        // "done" by calling latch.countDown() — used here so getLocationBlocking() can
+        // stay a normal function that just returns a value, instead of forcing every
+        // caller to deal with an async callback themselves.
         val latch = CountDownLatch(1)
         var result = lastKnown
         val listener = object : LocationListener {
