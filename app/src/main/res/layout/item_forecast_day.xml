@@ -8,43 +8,36 @@
     android:paddingTop="10dp"
     android:paddingBottom="10dp">
 
-    <!-- Day + condition word stacked, so "Rainy"/"Snowy"/"Windy"/etc. is always spelled
-         out here, not just implied by the icon. -->
-    <LinearLayout
-        android:layout_width="72dp"
+    <TextView
+        android:id="@+id/dayLabel"
+        android:layout_width="52dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/dayLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/retro_teal"
-            android:textStyle="bold"
-            android:textSize="15sp"
-            android:text="--" />
-
-        <TextView
-            android:id="@+id/conditionText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/retro_pink"
-            android:textSize="12sp"
-            android:text="--" />
-
-    </LinearLayout>
+        android:textColor="@color/retro_teal"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:text="--" />
 
     <ImageView
         android:id="@+id/conditionIcon"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
-        android:layout_marginEnd="10dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="6dp"
         android:src="@drawable/ic_weather_cloudy" />
 
     <TextView
-        android:id="@+id/highLowText"
+        android:id="@+id/conditionText"
         android:layout_width="0dp"
         android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:textColor="@color/retro_pink"
+        android:textSize="13sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="--" />
+
+    <TextView
+        android:id="@+id/highLowText"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="end"
         android:textColor="@color/retro_white"
