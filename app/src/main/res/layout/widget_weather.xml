@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Layout: city name centered at the very top (white), then a 2x2 grid of
-  four equal-sized, equally-spaced groups — current temp + today's high/low
-  (top-left), "TODAY" / condition / sunrise-sunset (top-right), and the
-  next two days' forecast (bottom-left/right, each showing day/high-low/
-  condition, no icon by request). topRow and forecastRow share weight="1"
-  so they split the remaining height into equal halves, and every cell has
-  a matching 4dp+4dp margin against its neighbor so the horizontal gap
-  between columns matches the vertical gap between rows. Every row below
+  four equal-sized groups — current temp + today's high/low (top-left),
+  "TODAY" / condition / sunrise-sunset (top-right), and the next two days'
+  forecast (bottom-left/right, each showing day/high-low/condition, no icon
+  by request). topRow and forecastRow share weight="1" so they split the
+  remaining height into equal halves — top and bottom match. Left/right
+  columns sit flush against each other (no gap) in BOTH rows, so the top
+  pair "comes together" the same way the bottom pair does. Every row below
   cityText is toggled visible/gone in code (WeatherWidgetProvider —
   buildViews()) based on the widget's current on-screen size. All text is set
   in code; nothing here ever changes except through that.
@@ -57,7 +57,6 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:layout_marginEnd="4dp"
             android:orientation="vertical"
             android:gravity="start|center_vertical">
 
@@ -94,7 +93,6 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:layout_marginStart="4dp"
             android:orientation="vertical"
             android:gravity="end|center_vertical">
 
@@ -175,7 +173,6 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:layout_marginEnd="4dp"
             android:orientation="vertical"
             android:gravity="center">
 
@@ -215,7 +212,6 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:layout_marginStart="4dp"
             android:orientation="vertical"
             android:gravity="center">
 
