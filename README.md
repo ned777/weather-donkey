@@ -1,42 +1,10 @@
 # Weather Donkey
 
-A fixed-size (2×2, not resizable) Android home-screen widget for a glance at
-the weather right where you are. **Tap it to update — there's no background
-polling, no periodic timer, no cloud relay.** It only ever refreshes at the
-moment you touch it.
-
-## What it shows
-
-```
-           CURRENT LOCA..
-      72°          TODAY
-  H:78° L:61°       Sunny
-  Rain: 10%       ↑ 6:32 AM
-                  ↓ 7:45 PM
-
-   WED           THU
-  75/58         70/55
-  SUNNY         WINDY
- Rain: 20%     Rain: 5%
-
-  3:45 PM · Aug 23 · PDT
-```
-
-- City name centered at the top, white, capped at 10 characters
-  ("San Francisco" → "San Fran..")
-- Current temperature at your approximate location, in °F or °C (your
-  choice, set in the app), under a literal "TODAY" label
-- Condition, in words — no icons on the widget by request. Six states:
-  **Sunny**, **Partial**, **Cloudy**, **Windy**, **Rainy**, **Snowy**
-- Rain chance (today's daily max — Open-Meteo has no separate "current"
-  precipitation-probability field), and sunrise/sunset in local clock time
-- The next two days' high/low, condition (day label in caps), and rain
-  chance, filling the bottom half
-- A status line at the very bottom: **"Updating…"** while a tap's fetch is
-  in flight, otherwise the last-updated time, date, and timezone
-
-Text sizes are all measured against the widget's actual rendered size and
-shrunk to fit if needed, so nothing wraps or gets clipped.
+An Android app **and** a home-screen widget, not just one or the other —
+current-location weather (temperature, condition, sunrise/sunset, rain
+chance) from [Open-Meteo](https://open-meteo.com), a free open-source API.
+**Both only ever update when you touch them — no background polling, no
+periodic timer, no cloud relay of your own.**
 
 ## Each widget can watch a different location
 
@@ -48,7 +16,7 @@ populate. A widget bound to a searched city needs no location permission at
 all — only a "Current"-bound widget ever does. Tapping one widget only ever
 refreshes that one widget, never every placed widget.
 
-## The app: multiple locations, unit toggle, 5-day forecast, flat icons
+## App features
 
 The app mirrors the widget's own tab-per-location model, plus more detail:
 

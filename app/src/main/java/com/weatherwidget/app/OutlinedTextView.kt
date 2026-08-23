@@ -24,12 +24,15 @@ class OutlinedTextView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         val fillColor = paint.color
 
+        // A thick stroke at very large sizes can swallow a digit's counters (the "hole"
+        // in a 0, for example) — 0.03x keeps it a crisp outline instead of a blob.
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = textSize * 0.06f
+        paint.strokeWidth = textSize * 0.03f
         paint.color = outlineColor
         super.onDraw(canvas)
 
         paint.style = Paint.Style.FILL
+        paint.strokeWidth = 0f
         paint.color = fillColor
         super.onDraw(canvas)
     }
