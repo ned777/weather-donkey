@@ -121,7 +121,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val day2: DailyForecast?
 
             if (snapshot != null) {
-                locationStr = snapshot.cityName ?: context.getString(R.string.current_location)
+                locationStr = widgetLocationLabel(snapshot.cityName ?: context.getString(R.string.current_location))
                 tempStr = WeatherFormat.tempString(snapshot.tempF, fahrenheit)
                 todayHighLowStr = WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit)
                 val condition = WeatherCondition.fromCode(snapshot.code)
@@ -164,6 +164,12 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             setClickIntent(context, views, id)
             return views
         }
+
+        // The widget's location column is narrow — a long city name gets a hard
+        // character-count truncation ("San Francisco" -> "San F..") on top of (not
+        // instead of) the normal width-based fit-sizing/ellipsize.
+        private fun widgetLocationLabel(name: String): String =
+            if (name.length > 7) name.take(5) + ".." else name
 
         private fun forecastHighLowString(day: DailyForecast?, fahrenheit: Boolean): String =
             if (day != null) "${WeatherFormat.tempString(day.highF, fahrenheit)}/${WeatherFormat.tempString(day.lowF, fahrenheit)}" else "--°/--°"
