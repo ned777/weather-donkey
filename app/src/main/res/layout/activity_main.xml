@@ -107,27 +107,26 @@
                 android:letterSpacing="0.06"
                 android:text="@string/widget_today_label" />
 
-            <!-- Outlined + auto-sized: single-digit temps render huge, but a double-digit
-                 (or negative) reading shrinks itself down just enough to still fit the
-                 screen width instead of wrapping or overflowing — see OutlinedTextView.kt. -->
+            <!-- Outlined; sized manually in MainActivity.applyTempTextSize() (same Paint-
+                 measurement technique the widget already uses) rather than framework
+                 autosize — combining autosize with a custom onDraw override turned out to
+                 be untested, unreliable territory. Single-digit temps render huge; a
+                 double-digit (or negative) reading shrinks just enough to keep fitting the
+                 screen width instead of wrapping or overflowing. -->
             <com.weatherwidget.app.OutlinedTextView
                 android:id="@+id/tempText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
+                android:includeFontPadding="false"
                 android:textColor="@color/retro_cyan"
+                android:textSize="130sp"
                 android:textStyle="bold"
                 android:shadowColor="@color/retro_cyan"
                 android:shadowDx="0"
                 android:shadowDy="0"
                 android:shadowRadius="20"
-                android:autoSizeTextType="uniform"
-                android:autoSizeMinTextSize="60sp"
-                android:autoSizeMaxTextSize="160sp"
-                android:autoSizeStepGranularity="4sp"
                 android:text="--°" />
 
             <TextView

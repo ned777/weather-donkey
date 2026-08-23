@@ -1,8 +1,11 @@
 package com.weatherwidget.app
 
 import android.Manifest
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.os.Bundle
 import android.text.InputType
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -30,6 +33,11 @@ import com.google.android.material.tabs.TabLayout
  * (itself an explicit tap).
  */
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TEMP_MAX_SP = 130f
+        private const val TEMP_MIN_SP = 60f
+    }
 
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var tabLayout: TabLayout
@@ -252,6 +260,7 @@ class MainActivity : AppCompatActivity() {
     // So switching to a tab with nothing cached yet doesn't keep showing the
     // previous tab's numbers underneath the "swipe down to load" message.
     private fun clearWeatherFieldsToPlaceholder() {
+        applyTempTextSize("--°")
         tempText.text = "--°"
         todayHighLowText.text = "H:--°  L:--°"
         conditionIcon.setImageResource(R.drawable.ic_weather_cloudy)
@@ -313,7 +322,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun render(snapshot: WeatherSnapshot) {
         val fahrenheit = UnitPreference.isFahrenheit(this)
-        tempText.text = WeatherFormat.tempString(snapshot.tempF, fahrenheit)
+        val tempStr = WeatherFormat.tempString(snapshot.tempF, fahrenheit)
+        applyTempTextSize(tempStr)
+        tempText.text = tempStr
         todayHighLowText.text = WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit)
         val condition = snapshot.condition
         conditionIcon.setImageResource(condition.iconRes(snapshot.isDay))
@@ -321,6 +332,28 @@ class MainActivity : AppCompatActivity() {
         sunriseText.text = "↑ Sunrise ${WeatherFormat.clockTime(snapshot.sunrise)}"
         sunsetText.text = "↓ Sunset ${WeatherFormat.clockTime(snapshot.sunset)}"
         populateForecast(snapshot.forecast, fahrenheit)
+    }
+
+    // Measures the exact string against the screen's actual available width and picks the
+    // largest size (within TEMP_MAX_SP/TEMP_MIN_SP) that still fits on one line — same
+    // "measure once, scale proportionally" trick WeatherWidgetProvider already uses, just
+    // run here in the Activity instead of relying on framework autosize (which turned out
+    // to be unreliable combined with OutlinedTextView's custom onDraw).
+    private fun applyTempTextSize(text: String) {
+        val metrics = resources.displayMetrics
+        val paint = Paint().apply {
+            typeface = Typeface.DEFAULT_BOLD
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, TEMP_MAX_SP, metrics)
+        }
+        // The parent LinearLayout has 24dp padding on each side; tempText itself has none.
+        val availableWidthPx = metrics.widthPixels - TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48f, metrics)
+        val measuredPx = paint.measureText(text)
+        val fitSp = if (measuredPx > availableWidthPx && measuredPx > 0f) {
+            (TEMP_MAX_SP * (availableWidthPx / measuredPx)).coerceAtLeast(TEMP_MIN_SP)
+        } else {
+            TEMP_MAX_SP
+        }
+        tempText.setTextSize(TypedValue.COMPLEX_UNIT_SP, fitSp)
     }
 
     private fun populateForecast(forecast: List<DailyForecast>, fahrenheit: Boolean) {
