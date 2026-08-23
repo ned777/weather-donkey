@@ -247,60 +247,71 @@
                 android:orientation="vertical" />
 
             <!-- Standalone unit converter, unrelated to the location tabs above — typing
-                 in one box fills in the other, live (MainActivity.setupTempConverter()). -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/retro_yellow"
-                android:textStyle="bold"
-                android:textSize="17sp"
-                android:letterSpacing="0.06"
-                android:layout_marginTop="28dp"
-                android:layout_marginBottom="8dp"
-                android:text="@string/converter_header" />
-
+                 in one box fills in the other, live (MainActivity.setupTempConverter()).
+                 Wrapped in its own container so MainActivity's swipe-between-tabs gesture
+                 can check "did this touch start inside the converter?" and, if so, leave
+                 it alone (converter stays still) instead of changing tabs. -->
             <LinearLayout
+                android:id="@+id/converterSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <EditText
-                    android:id="@+id/fahrenheitInput"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberSigned|numberDecimal"
-                    android:gravity="center"
-                    android:hint="@string/unit_fahrenheit"
-                    android:textColorHint="@color/retro_white_dim"
-                    android:textColor="@color/retro_cyan"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:autofillHints="" />
+                android:orientation="vertical">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
-                    android:textColor="@color/retro_white_dim"
-                    android:textSize="18sp"
-                    android:text="=" />
-
-                <EditText
-                    android:id="@+id/celsiusInput"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberSigned|numberDecimal"
-                    android:gravity="center"
-                    android:hint="@string/unit_celsius"
-                    android:textColorHint="@color/retro_white_dim"
-                    android:textColor="@color/retro_pink"
-                    android:textSize="18sp"
+                    android:textColor="@color/retro_yellow"
                     android:textStyle="bold"
-                    android:autofillHints="" />
+                    android:textSize="17sp"
+                    android:letterSpacing="0.06"
+                    android:layout_marginTop="28dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/converter_header" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <EditText
+                        android:id="@+id/fahrenheitInput"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberSigned|numberDecimal"
+                        android:gravity="center"
+                        android:hint="@string/unit_fahrenheit"
+                        android:textColorHint="@color/retro_white_dim"
+                        android:textColor="@color/retro_cyan"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:autofillHints="" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:textColor="@color/retro_white_dim"
+                        android:textSize="18sp"
+                        android:text="=" />
+
+                    <EditText
+                        android:id="@+id/celsiusInput"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberSigned|numberDecimal"
+                        android:gravity="center"
+                        android:hint="@string/unit_celsius"
+                        android:textColorHint="@color/retro_white_dim"
+                        android:textColor="@color/retro_pink"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:autofillHints="" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

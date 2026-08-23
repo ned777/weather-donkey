@@ -8,8 +8,11 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.TypedValue
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -22,6 +25,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.tabs.TabLayout
+import kotlin.math.abs
 
 /**
  * The screen you land on when you tap the widget (before granting location)
@@ -63,6 +67,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var forecastContainer: LinearLayout
     private lateinit var fahrenheitInput: EditText
     private lateinit var celsiusInput: EditText
+    private lateinit var converterSection: View
 
     private var savedLocations: List<SavedLocation> = emptyList()
     private var activeLocationId: String = WeatherCache.CURRENT_LOCATION_ID
@@ -70,6 +75,32 @@ class MainActivity : AppCompatActivity() {
     // Guards against the two converter boxes' TextWatchers feeding off each other —
     // set right before/after a programmatic setText() on the OTHER box.
     private var isConvertingTemp = false
+
+    // Set on every ACTION_DOWN — whether THIS gesture started inside the converter, so a
+    // swipe there never changes tabs (the converter "stays still", per request) while a
+    // swipe starting anywhere else on the weather content does.
+    private var gestureStartedInConverter = false
+
+    private val tabSwipeDetector by lazy {
+        GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                if (gestureStartedInConverter || e1 == null) return false
+                val diffX = e2.x - e1.x
+                val diffY = e2.y - e1.y
+                // Mostly horizontal, and a deliberate flick — not an incidental wobble
+                // during a vertical scroll or the SwipeRefreshLayout's own pull-down.
+                if (abs(diffX) <= abs(diffY)) return false
+                val metrics = resources.displayMetrics
+                val minDistancePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60f, metrics)
+                val minVelocity = ViewConfiguration.get(this@MainActivity).scaledMinimumFlingVelocity
+                if (abs(diffX) < minDistancePx || abs(velocityX) < minVelocity) return false
+                // Finger moving left (diffX negative) reveals the next tab, like flipping
+                // to the next card — right moves back to the previous one.
+                goToAdjacentTab(if (diffX < 0) 1 else -1)
+                return true
+            }
+        })
+    }
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -104,6 +135,7 @@ class MainActivity : AppCompatActivity() {
         forecastContainer = findViewById(R.id.forecastContainer)
         fahrenheitInput = findViewById(R.id.fahrenheitInput)
         celsiusInput = findViewById(R.id.celsiusInput)
+        converterSection = findViewById(R.id.converterSection)
 
         swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.retro_cyan))
         swipeRefresh.setOnRefreshListener { startRefresh() }
@@ -120,6 +152,36 @@ class MainActivity : AppCompatActivity() {
         setupTabs()
         updateUnitButtonsUi()
         renderFromCache()
+    }
+
+    // Observes every touch the Activity sees (without consuming it — normal scrolling,
+    // button taps, and EditText focus/typing all still work exactly as before) purely to
+    // feed tabSwipeDetector's fling detection and to remember whether THIS gesture started
+    // inside the converter.
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.action == MotionEvent.ACTION_DOWN) {
+            gestureStartedInConverter = isPointInsideView(ev.rawX, ev.rawY, converterSection)
+        }
+        tabSwipeDetector.onTouchEvent(ev)
+        return super.dispatchTouchEvent(ev)
+    }
+
+    private fun isPointInsideView(rawX: Float, rawY: Float, view: View): Boolean {
+        val location = IntArray(2)
+        view.getLocationOnScreen(location)
+        return rawX >= location[0] && rawX <= location[0] + view.width &&
+            rawY >= location[1] && rawY <= location[1] + view.height
+    }
+
+    // Swipes to the next/previous REAL location tab — never onto the trailing "+" tab,
+    // which is an action (opens the search dialog), not a page to land on.
+    private fun goToAdjacentTab(delta: Int) {
+        val lastRealIndex = tabLayout.tabCount - 2 // last tab is always "+"
+        if (lastRealIndex < 0) return
+        val newIndex = (tabLayout.selectedTabPosition + delta).coerceIn(0, lastRealIndex)
+        if (newIndex != tabLayout.selectedTabPosition) {
+            tabLayout.getTabAt(newIndex)?.select()
+        }
     }
 
     // --- Tabs -----------------------------------------------------------
