@@ -1,7 +1,7 @@
 <!--
   Same retro dark-card language as the other widgets in this family (Today,
   SysMon): black card, thin yellow outline, colored glow text. One accent per
-  role: teal for the location, cyan for the hero temperature, pink for the
+  role: teal for the location, cyan for the hero temperature, yellow for the
   condition (sunny/cloudy/raining), white for sunrise/sunset.
 -->
 <resources>
@@ -14,7 +14,6 @@
     <color name="retro_yellow">#FFD400</color>
     <color name="retro_cyan">#00D9FF</color>
     <color name="retro_teal">#00E0B8</color>
-    <color name="retro_pink">#C2185B</color>
     <color name="retro_white">#F5F5FF</color>
     <color name="retro_white_dim">#8C8C99</color>
 </resources>
