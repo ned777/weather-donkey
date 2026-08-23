@@ -275,7 +275,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val fullWidthPx = (widthPx - 2 * paddingPx).toFloat().coerceAtLeast(0f)
             val halfColumnPx = (fullWidthPx / 2f - dpToPx(context, 4)).coerceAtLeast(0f)
 
-            val tempMaxSp = if (tier == WidgetSizeTier.FULL) 56f else 30f
+            val tempMaxSp = if (tier == WidgetSizeTier.FULL) 50f else 27f
             val tempSp = fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true)
             setSp(context, views, R.id.tempText, tempSp)
 
@@ -344,7 +344,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     textHeightPx(context, conditionSp, bold = true) +
                     textHeightPx(context, sunriseSp, bold = false) +
                     textHeightPx(context, sunsetSp, bold = false) -
-                    dpToPx(context, 3) // matches sunsetText's negative marginTop in widget_weather.xml
+                    dpToPx(context, 6) // matches conditionText's and sunsetText's negative marginTop in widget_weather.xml
                 val topRowHeightPx = maxOf(leftColHeightPx, rightColHeightPx)
                 val updatedHeightPx = textHeightPx(context, 10f, bold = false)
                 val totalHeightPx = dpToPx(context, minHeightDp).toFloat()

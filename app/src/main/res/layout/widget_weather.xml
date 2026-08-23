@@ -119,6 +119,7 @@
                 android:id="@+id/conditionText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="-3dp"
                 android:textColor="@color/retro_pink"
                 android:textSize="15sp"
                 android:textStyle="bold"
