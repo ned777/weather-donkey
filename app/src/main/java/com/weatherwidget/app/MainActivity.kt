@@ -56,6 +56,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var todayLabelText: TextView
     private lateinit var tempText: TextView
     private lateinit var todayHighLowText: TextView
+    private lateinit var todayRainText: TextView
+    private lateinit var todayWindText: TextView
     private lateinit var conditionIcon: ImageView
     private lateinit var conditionText: TextView
     private lateinit var sunriseText: TextView
@@ -124,6 +126,8 @@ class MainActivity : AppCompatActivity() {
         todayLabelText = findViewById(R.id.todayLabelText)
         tempText = findViewById(R.id.tempText)
         todayHighLowText = findViewById(R.id.todayHighLowText)
+        todayRainText = findViewById(R.id.todayRainText)
+        todayWindText = findViewById(R.id.todayWindText)
         conditionIcon = findViewById(R.id.conditionIcon)
         conditionText = findViewById(R.id.conditionText)
         sunriseText = findViewById(R.id.sunriseText)
@@ -340,6 +344,8 @@ class MainActivity : AppCompatActivity() {
         applyTempTextSize("--°")
         tempText.text = "--°"
         todayHighLowText.text = "H:--°  L:--°"
+        todayRainText.text = "Rain: --%"
+        todayWindText.text = "Wind: --mph"
         conditionIcon.setImageResource(R.drawable.ic_weather_cloudy)
         conditionText.text = "--"
         sunriseText.text = "↑ Sunrise --:--"
@@ -403,6 +409,8 @@ class MainActivity : AppCompatActivity() {
         applyTempTextSize(tempStr)
         tempText.text = tempStr
         todayHighLowText.text = WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit)
+        todayRainText.text = WeatherFormat.rainChanceString(snapshot.todayRainChancePercent)
+        todayWindText.text = WeatherFormat.windString(snapshot.windSpeedMph)
         val condition = snapshot.condition
         conditionIcon.setImageResource(condition.iconRes(snapshot.isDay))
         conditionText.text = condition.label

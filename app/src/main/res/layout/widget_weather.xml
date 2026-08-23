@@ -4,7 +4,7 @@
   top-left with today's high/low under it, "TODAY" / condition / sunrise-
   sunset stacked tight (no vertical gap) top-right, and a two-day forecast
   row filling the bottom half — each forecast cell shows day/high-low/
-  condition/rain, no icon anywhere in this widget (by request). Every row
+  condition, no icon anywhere in this widget (by request). Every row
   below cityText is toggled visible/gone in code (WeatherWidgetProvider —
   buildViews()) based on the widget's current on-screen size. All text is set
   in code; nothing here ever changes except through that.
@@ -78,17 +78,6 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:text="H:--°  L:--°" />
-
-            <TextView
-                android:id="@+id/todayRainText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:textColor="@color/retro_white"
-                android:textSize="12sp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="Rain: --%" />
 
         </LinearLayout>
 
@@ -205,18 +194,10 @@
                 android:id="@+id/forecast1Condition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="-3dp"
                 android:textColor="@color/retro_pink"
                 android:textSize="13sp"
                 android:text="--" />
-
-            <TextView
-                android:id="@+id/forecast1Rain"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:textColor="@color/retro_white"
-                android:textSize="11sp"
-                android:text="Rain: --%" />
 
         </LinearLayout>
 
@@ -252,18 +233,10 @@
                 android:id="@+id/forecast2Condition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="-3dp"
                 android:textColor="@color/retro_pink"
                 android:textSize="13sp"
                 android:text="--" />
-
-            <TextView
-                android:id="@+id/forecast2Rain"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:textColor="@color/retro_white"
-                android:textSize="11sp"
-                android:text="Rain: --%" />
 
         </LinearLayout>
 

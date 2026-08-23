@@ -144,7 +144,6 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val cityStr: String
             val tempStr: String
             val todayHighLowStr: String
-            val todayRainStr: String
             val conditionStr: String
             val sunriseStr: String
             val sunsetStr: String
@@ -155,7 +154,6 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 cityStr = widgetCityLabel(snapshot.cityName ?: context.getString(R.string.current_location))
                 tempStr = WeatherFormat.tempString(snapshot.tempF, fahrenheit)
                 todayHighLowStr = WeatherFormat.highLowString(snapshot.todayHighF, snapshot.todayLowF, fahrenheit)
-                todayRainStr = WeatherFormat.rainChanceString(snapshot.todayRainChancePercent)
                 conditionStr = snapshot.condition.label
                 sunriseStr = "↑ ${WeatherFormat.clockTime(snapshot.sunrise)}"
                 sunsetStr = "↓ ${WeatherFormat.clockTime(snapshot.sunset)}"
@@ -174,7 +172,6 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 )
                 tempStr = "--°"
                 todayHighLowStr = "H:--°  L:--°"
-                todayRainStr = "Rain: --%"
                 conditionStr = "--"
                 sunriseStr = "↑ --:--"
                 sunsetStr = "↓ --:--"
@@ -188,14 +185,11 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val forecast2HighLow = forecastHighLowString(day2, fahrenheit)
             val forecast1Condition = day1?.condition?.label ?: "--"
             val forecast2Condition = day2?.condition?.label ?: "--"
-            val forecast1Rain = forecastRainString(day1)
-            val forecast2Rain = forecastRainString(day2)
 
             views.setTextViewText(R.id.cityText, cityStr)
             views.setTextViewText(R.id.todayLabelText, todayLabel)
             views.setTextViewText(R.id.tempText, tempStr)
             views.setTextViewText(R.id.todayHighLowText, todayHighLowStr)
-            views.setTextViewText(R.id.todayRainText, todayRainStr)
             views.setTextViewText(R.id.conditionText, conditionStr)
             views.setTextViewText(R.id.sunriseText, sunriseStr)
             views.setTextViewText(R.id.sunsetText, sunsetStr)
@@ -203,17 +197,15 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.forecast1Day, forecast1Day)
             views.setTextViewText(R.id.forecast1HighLow, forecast1HighLow)
             views.setTextViewText(R.id.forecast1Condition, forecast1Condition)
-            views.setTextViewText(R.id.forecast1Rain, forecast1Rain)
             views.setTextViewText(R.id.forecast2Day, forecast2Day)
             views.setTextViewText(R.id.forecast2HighLow, forecast2HighLow)
             views.setTextViewText(R.id.forecast2Condition, forecast2Condition)
-            views.setTextViewText(R.id.forecast2Rain, forecast2Rain)
 
             applyResponsiveSizing(
                 context, views, manager, id,
-                tempStr, todayHighLowStr, todayRainStr, todayLabel, conditionStr, sunriseStr, sunsetStr,
+                tempStr, todayHighLowStr, todayLabel, conditionStr, sunriseStr, sunsetStr,
                 forecast1Day, forecast2Day, forecast1HighLow, forecast2HighLow,
-                forecast1Condition, forecast2Condition, forecast1Rain, forecast2Rain
+                forecast1Condition, forecast2Condition
             )
             setClickIntent(context, views, id, locationId)
             return views
@@ -227,9 +219,6 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
         private fun forecastHighLowString(day: DailyForecast?, fahrenheit: Boolean): String =
             if (day != null) "${WeatherFormat.tempString(day.highF, fahrenheit)}/${WeatherFormat.tempString(day.lowF, fahrenheit)}" else "--°/--°"
-
-        private fun forecastRainString(day: DailyForecast?): String =
-            if (day != null) WeatherFormat.rainChanceString(day.rainChancePercent) else "Rain: --%"
 
         /**
          * COMPACT (roughly a 1x1/2x1 grid cell) drops to just the temperature,
@@ -247,10 +236,9 @@ class WeatherWidgetProvider : AppWidgetProvider() {
          */
         private fun applyResponsiveSizing(
             context: Context, views: RemoteViews, manager: AppWidgetManager, id: Int,
-            tempStr: String, todayHighLowStr: String, todayRainStr: String, todayLabel: String, conditionStr: String,
+            tempStr: String, todayHighLowStr: String, todayLabel: String, conditionStr: String,
             sunriseStr: String, sunsetStr: String, forecast1Day: String, forecast2Day: String,
-            forecast1HighLow: String, forecast2HighLow: String, forecast1Condition: String, forecast2Condition: String,
-            forecast1Rain: String, forecast2Rain: String
+            forecast1HighLow: String, forecast2HighLow: String, forecast1Condition: String, forecast2Condition: String
         ) {
             val options = manager.getAppWidgetOptions(id)
             val minHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
@@ -308,11 +296,9 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
             if (tier == WidgetSizeTier.FULL) {
                 val todayHighLowSp = fitWidthSp(context, todayHighLowStr, halfColumnPx, 14f, 10f, bold = true)
-                val todayRainSp = fitWidthSp(context, todayRainStr, halfColumnPx, 12f, 9f, bold = false)
                 val sunriseSp = fitWidthSp(context, sunriseStr, halfColumnPx, 13f, 10f, bold = false)
                 val sunsetSp = fitWidthSp(context, sunsetStr, halfColumnPx, 13f, 10f, bold = false)
                 setSp(context, views, R.id.todayHighLowText, todayHighLowSp)
-                setSp(context, views, R.id.todayRainText, todayRainSp)
                 setSp(context, views, R.id.sunriseText, sunriseSp)
                 setSp(context, views, R.id.sunsetText, sunsetSp)
 
@@ -323,23 +309,18 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     fitWidthSp(context, forecast2HighLow, halfColumnPx, 13f, 9f, bold = false)
                 )
                 var finalForecastLabelSp = forecastLabelSp
-                var forecastRainSp = minOf(
-                    fitWidthSp(context, forecast1Rain, halfColumnPx, 11f, 8f, bold = false),
-                    fitWidthSp(context, forecast2Rain, halfColumnPx, 11f, 8f, bold = false)
-                )
 
-                // Width-fitting alone isn't enough — the forecast cell stacks FOUR lines
-                // (day/high-low/condition/rain) inside forecastRow's fixed, weighted height.
+                // Width-fitting alone isn't enough — the forecast cell stacks THREE lines
+                // (day/high-low/condition) inside forecastRow's fixed, weighted height.
                 // Nothing had ever checked whether that stack's total height actually fits,
-                // so the last line (rain) could get silently clipped by the parent even
-                // though each line individually fit its column's width. Measure the real
-                // vertical budget (total height minus padding, the top row, and every
-                // margin/line around it) and shrink the forecast text uniformly if the
-                // stack is taller than what's actually left for it.
+                // so a line could get silently clipped by the parent even though each line
+                // individually fit its column's width. Measure the real vertical budget
+                // (total height minus padding, the top row, and every margin/line around
+                // it) and shrink the forecast text uniformly if the stack is taller than
+                // what's actually left for it.
                 val cityHeightPx = textHeightPx(context, todaySp, bold = true)
                 val leftColHeightPx = textHeightPx(context, tempSp, bold = true) +
-                    textHeightPx(context, todayHighLowSp, bold = true) +
-                    textHeightPx(context, todayRainSp, bold = false)
+                    textHeightPx(context, todayHighLowSp, bold = true)
                 val rightColHeightPx = textHeightPx(context, todaySp, bold = true) +
                     textHeightPx(context, conditionSp, bold = true) +
                     textHeightPx(context, sunriseSp, bold = false) +
@@ -357,14 +338,13 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
                 val neededStackHeightPx = textHeightPx(context, finalForecastLabelSp, bold = true) +
                     textHeightPx(context, forecastHighLowSp, bold = false) +
-                    textHeightPx(context, finalForecastLabelSp, bold = false) +
-                    textHeightPx(context, forecastRainSp, bold = false)
+                    textHeightPx(context, finalForecastLabelSp, bold = false) -
+                    dpToPx(context, 3) // matches forecastCondition's negative marginTop in widget_weather.xml
 
                 if (neededStackHeightPx > forecastAvailableHeightPx && neededStackHeightPx > 0f) {
                     val scale = forecastAvailableHeightPx / neededStackHeightPx
                     finalForecastLabelSp = (finalForecastLabelSp * scale).coerceAtLeast(7f)
                     forecastHighLowSp = (forecastHighLowSp * scale).coerceAtLeast(7f)
-                    forecastRainSp = (forecastRainSp * scale).coerceAtLeast(7f)
                 }
 
                 setSp(context, views, R.id.forecast1HighLow, forecastHighLowSp)
@@ -373,13 +353,10 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 setSp(context, views, R.id.forecast2Day, finalForecastLabelSp)
                 setSp(context, views, R.id.forecast1Condition, finalForecastLabelSp)
                 setSp(context, views, R.id.forecast2Condition, finalForecastLabelSp)
-                setSp(context, views, R.id.forecast1Rain, forecastRainSp)
-                setSp(context, views, R.id.forecast2Rain, forecastRainSp)
             }
             setSp(context, views, R.id.updatedText, 10f)
 
             views.setViewVisibility(R.id.todayHighLowText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.todayRainText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.sunRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.forecastRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
         }
