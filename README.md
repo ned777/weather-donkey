@@ -47,6 +47,19 @@ city needs no location permission at all — only a "Current"-bound widget
 ever does. Tapping one widget only ever refreshes that one widget, never
 every placed widget.
 
+## Screenshots
+
+<p>
+  <img src="screenshots/app-current-tab.jpg" width="30%" alt="Current tab showing today's temperature and start of the 5-day forecast" />
+  <img src="screenshots/app-forecast-and-converter.jpg" width="30%" alt="5-day forecast plus the standalone °F/°C converter" />
+  <img src="screenshots/app-los-angeles-tab.jpg" width="30%" alt="A searched-city tab for Los Angeles" />
+</p>
+<p>
+  <img src="screenshots/app-honolulu-tab.jpg" width="30%" alt="A second searched-city tab for Honolulu" />
+  <img src="screenshots/widget-location-picker.jpg" width="30%" alt="Per-widget location picker shown when adding a widget" />
+  <img src="screenshots/widget-home-screen.jpg" width="30%" alt="The widget placed on the home screen" />
+</p>
+
 ## Weather data: Open-Meteo
 
 Weather comes from [Open-Meteo](https://open-meteo.com) — a free,
