@@ -187,7 +187,7 @@
                     android:id="@+id/conditionText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/retro_teal"
+                    android:textColor="@color/retro_cyan"
                     android:textSize="23sp"
                     android:textStyle="bold"
                     android:text="--" />
@@ -229,7 +229,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/remove_location"
-                android:textColor="@color/retro_teal"
+                android:textColor="@color/retro_cyan"
                 android:textSize="13sp"
                 android:padding="6dp"
                 android:layout_marginBottom="4dp"
@@ -331,7 +331,7 @@
                         android:gravity="center"
                         android:hint="@string/unit_celsius"
                         android:textColorHint="@color/retro_white_dim"
-                        android:textColor="@color/retro_teal"
+                        android:textColor="@color/retro_cyan"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:autofillHints="" />
