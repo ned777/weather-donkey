@@ -14,7 +14,7 @@
         <shape android:shape="rectangle">
             <stroke
                 android:width="2dp"
-                android:color="@color/retro_yellow" />
+                android:color="@color/widget_border" />
             <corners android:radius="@dimen/widget_corner_radius" />
         </shape>
     </item>

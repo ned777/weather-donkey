@@ -9,7 +9,7 @@
     <path android:fillColor="#F5F5FF" android:pathData="M16.5,12.2 m-3.2,0 a3.2,3.2 0 1,0 6.4,0 a3.2,3.2 0 1,0 -6.4,0" />
     <path android:fillColor="#F5F5FF" android:pathData="M12.5,15 m-3.8,0 a3.8,3.8 0 1,0 7.6,0 a3.8,3.8 0 1,0 -7.6,0" />
     <!-- Three diagonal raindrop streaks below the cloud. -->
-    <path android:fillColor="#00D9FF" android:pathData="M8,18 L7,22 L8.5,22 L9.5,18 Z" />
-    <path android:fillColor="#00D9FF" android:pathData="M12,19 L11,23 L12.5,23 L13.5,19 Z" />
-    <path android:fillColor="#00D9FF" android:pathData="M16,18 L15,22 L16.5,22 L17.5,18 Z" />
+    <path android:fillColor="#FFD400" android:pathData="M8,18 L7,22 L8.5,22 L9.5,18 Z" />
+    <path android:fillColor="#FFD400" android:pathData="M12,19 L11,23 L12.5,23 L13.5,19 Z" />
+    <path android:fillColor="#FFD400" android:pathData="M16,18 L15,22 L16.5,22 L17.5,18 Z" />
 </vector>
