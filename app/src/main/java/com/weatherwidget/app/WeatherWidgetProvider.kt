@@ -254,14 +254,14 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val verticalPaddingPx = dpToPx(context, verticalPaddingDp)
             views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, verticalPaddingPx, paddingPx, verticalPaddingPx)
 
-            // Both the top row's two columns and the forecast row's two cells sit flush
-            // against each other with no gap (see widget_weather.xml) — one shared "half
-            // column" width, minus a small buffer so text never rides right up against the
-            // middle. Same buffer in both rows, so left/right margins match top to bottom.
-            // The city name spans the FULL width instead.
+            // Both the top row's two columns and the forecast row's two cells carry a real
+            // 4dp+4dp margin against their neighbor (see widget_weather.xml), so the
+            // horizontal gap between columns equals the vertical gap between topRow and
+            // forecastRow — a true symmetric grid. The city name spans the FULL width instead.
             val widthPx = dpToPx(context, minWidthDp)
             val fullWidthPx = (widthPx - 2 * paddingPx).toFloat().coerceAtLeast(0f)
-            val halfColumnPx = (fullWidthPx / 2f - dpToPx(context, 4)).coerceAtLeast(0f)
+            val columnGapPx = dpToPx(context, 8)
+            val halfColumnPx = ((fullWidthPx - columnGapPx) / 2f).coerceAtLeast(0f)
 
             val tempMaxSp = if (tier == WidgetSizeTier.FULL) 50f else 27f
             var tempSp = fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true)
