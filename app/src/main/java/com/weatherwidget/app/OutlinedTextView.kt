@@ -11,8 +11,8 @@ import androidx.core.content.ContextCompat
  * A TextView that draws itself twice — once stroked (the outline), once
  * filled on top — the standard technique for "outlined" display text, since
  * Android has no built-in outline-text attribute. Outline width scales with
- * the current textSize, so it stays proportionally right even as autosize
- * (see activity_main.xml's tempText) shrinks or grows the font.
+ * the current textSize, so it stays proportionally right whatever size
+ * MainActivity.applyTempTextSize() picks.
  */
 class OutlinedTextView @JvmOverloads constructor(
     context: Context,
@@ -22,18 +22,20 @@ class OutlinedTextView @JvmOverloads constructor(
     private val outlineColor = ContextCompat.getColor(context, R.color.retro_white)
 
     override fun onDraw(canvas: Canvas) {
-        val fillColor = paint.color
+        val fillColor = currentTextColor
 
-        // A thick stroke at very large sizes can swallow a digit's counters (the "hole"
-        // in a 0, for example) — 0.03x keeps it a crisp outline instead of a blob.
+        // setTextColor(), not paint.color = ... — TextView's own onDraw() reapplies
+        // currentTextColor to the paint every time it runs, which silently overwrote a
+        // direct paint.color mutation here and made the "outline" pass draw in the fill
+        // color too (i.e., no visible outline at all, just a solid glyph).
+        setTextColor(outlineColor)
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = textSize * 0.03f
-        paint.color = outlineColor
+        paint.strokeWidth = textSize * 0.045f
         super.onDraw(canvas)
 
+        setTextColor(fillColor)
         paint.style = Paint.Style.FILL
         paint.strokeWidth = 0f
-        paint.color = fillColor
         super.onDraw(canvas)
     }
 }

@@ -112,21 +112,26 @@
                  autosize — combining autosize with a custom onDraw override turned out to
                  be untested, unreliable territory. Single-digit temps render huge; a
                  double-digit (or negative) reading shrinks just enough to keep fitting the
-                 screen width instead of wrapping or overflowing. -->
+                 available width instead of wrapping or overflowing. Negative side margins
+                 claw back most of the screen's 24dp content padding (down to a small 8dp)
+                 so this one element gets a much wider column to grow into — see
+                 MainActivity's TEMP_SIDE_MARGIN_DP, which the width calculation matches. -->
             <com.weatherwidget.app.OutlinedTextView
                 android:id="@+id/tempText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="-16dp"
+                android:layout_marginEnd="-16dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:includeFontPadding="false"
                 android:textColor="@color/retro_cyan"
-                android:textSize="130sp"
+                android:textSize="200sp"
                 android:textStyle="bold"
                 android:shadowColor="@color/retro_cyan"
                 android:shadowDx="0"
                 android:shadowDy="0"
-                android:shadowRadius="20"
+                android:shadowRadius="24"
                 android:text="--°" />
 
             <TextView

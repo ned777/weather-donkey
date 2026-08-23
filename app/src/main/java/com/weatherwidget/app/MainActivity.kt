@@ -35,8 +35,12 @@ import com.google.android.material.tabs.TabLayout
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        private const val TEMP_MAX_SP = 130f
-        private const val TEMP_MIN_SP = 60f
+        private const val TEMP_MAX_SP = 200f
+        private const val TEMP_MIN_SP = 70f
+
+        // Matches tempText's negative side margins in activity_main.xml (which claw back
+        // most of the screen's 24dp content padding) — the small visible margin left over.
+        private const val TEMP_SIDE_MARGIN_DP = 8f
     }
 
     private lateinit var swipeRefresh: SwipeRefreshLayout
@@ -345,8 +349,10 @@ class MainActivity : AppCompatActivity() {
             typeface = Typeface.DEFAULT_BOLD
             textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, TEMP_MAX_SP, metrics)
         }
-        // The parent LinearLayout has 24dp padding on each side; tempText itself has none.
-        val availableWidthPx = metrics.widthPixels - TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48f, metrics)
+        // tempText's negative side margins claw back most of the screen's padding — its
+        // real available width is the full screen minus just the small margin left over.
+        val availableWidthPx = metrics.widthPixels -
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, TEMP_SIDE_MARGIN_DP * 2, metrics)
         val measuredPx = paint.measureText(text)
         val fitSp = if (measuredPx > availableWidthPx && measuredPx > 0f) {
             (TEMP_MAX_SP * (availableWidthPx / measuredPx)).coerceAtLeast(TEMP_MIN_SP)
