@@ -119,7 +119,3 @@ export JAVA_HOME=<path to a JDK 17>
 Then long-press your home screen → Widgets → **Weather Donkey** and drag it
 on — you'll be asked which location it should watch. It only comes in one
 size (2×2) — there's nothing to resize.
-
-New to Android Studio or building an app for the first time? See
-[docs/BUILD_GUIDE.md](docs/BUILD_GUIDE.md) for a full from-scratch,
-no-experience-assumed walkthrough.
