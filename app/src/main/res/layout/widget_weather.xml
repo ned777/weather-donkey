@@ -2,10 +2,10 @@
 <!--
   Layout: city name centered at the very top (white), then big current temp
   top-left with today's high/low under it, "TODAY" / condition / sunrise-
-  sunset stacked tight (no vertical gap) top-right, a 1dp white divider, and
-  a two-day forecast row filling the bottom half — each forecast cell shows
-  day/condition/high-low, no icon anywhere in this widget (by request). Every
-  row below cityText is toggled visible/gone in code (WeatherWidgetProvider —
+  sunset stacked tight (no vertical gap) top-right, and a two-day forecast
+  row filling the bottom half — each forecast cell shows day/high-low/
+  condition/rain, no icon anywhere in this widget (by request). Every row
+  below cityText is toggled visible/gone in code (WeatherWidgetProvider —
   buildViews()) based on the widget's current on-screen size. All text is set
   in code; nothing here ever changes except through that.
 -->
@@ -35,11 +35,15 @@
         android:textSize="16sp"
         android:text="@string/current_location" />
 
+    <!-- baselineAligned="false" — otherwise Android vertically aligns this row's two
+         columns by their FIRST line's text baseline, which visually shoves the "TODAY"
+         column upward relative to the much-larger temperature number next to it. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="4dp">
+        android:baselineAligned="false"
+        android:layout_marginTop="2dp">
 
         <!-- Top-left: big current temperature, today's high/low right under it. -->
         <LinearLayout
@@ -109,11 +113,12 @@
                 android:ellipsize="end"
                 android:text="@string/widget_today_label" />
 
+            <!-- No includeFontPadding="false" here — condition words like "Sunny"/"Windy"/
+                 "Rainy" have real descenders, and stripping font padding was clipping them. -->
             <TextView
                 android:id="@+id/conditionText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:includeFontPadding="false"
                 android:textColor="@color/retro_pink"
                 android:textSize="15sp"
                 android:textStyle="bold"
@@ -157,27 +162,13 @@
 
     </LinearLayout>
 
-    <!-- 1dp divider between the "today" half and the two-day forecast half, inset a little from the edges. -->
-    <!-- Plain android.view.View isn't in RemoteViews' allowed class list on every
-         launcher ("Class not allowed to be inflated") — a background-colored, empty
-         TextView is the standard RemoteViews-safe way to draw a thin divider line. -->
-    <TextView
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="6dp"
-        android:layout_marginStart="6dp"
-        android:layout_marginEnd="6dp"
-        android:background="@color/retro_white"
-        android:text="" />
-
     <!-- Bottom half: the next two days, high/low. -->
     <LinearLayout
         android:id="@+id/forecastRow"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -206,12 +197,12 @@
                 android:textSize="13sp"
                 android:text="--°/--°" />
 
-            <!-- Condition word underneath, no icon. -->
+            <!-- Condition word underneath, no icon. No includeFontPadding="false" —
+                 see conditionText above for why (descender clipping). -->
             <TextView
                 android:id="@+id/forecast1Condition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:includeFontPadding="false"
                 android:textColor="@color/retro_pink"
                 android:textSize="13sp"
                 android:text="--" />
@@ -253,12 +244,12 @@
                 android:textSize="13sp"
                 android:text="--°/--°" />
 
-            <!-- Condition word underneath, no icon. -->
+            <!-- Condition word underneath, no icon. No includeFontPadding="false" —
+                 see conditionText above for why (descender clipping). -->
             <TextView
                 android:id="@+id/forecast2Condition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:includeFontPadding="false"
                 android:textColor="@color/retro_pink"
                 android:textSize="13sp"
                 android:text="--" />

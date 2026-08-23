@@ -331,7 +331,6 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             views.setViewVisibility(R.id.todayHighLowText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.todayRainText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.sunRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.divider, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.forecastRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
         }
 
