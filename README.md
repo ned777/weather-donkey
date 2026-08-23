@@ -6,24 +6,13 @@ chance) from [Open-Meteo](https://open-meteo.com), a free open-source API.
 **Both only ever update when you touch them — no background polling, no
 periodic timer, no cloud relay of your own.**
 
-## Each widget can watch a different location
-
-Dragging a new widget onto the home screen shows a config screen first —
-pick **Current** (GPS) or any city already added as a tab in the app. Each
-widget instance remembers its own choice independently (`WidgetLocationBinding`,
-keyed per widget id), reusing the same per-location cache the app's tabs
-populate. A widget bound to a searched city needs no location permission at
-all — only a "Current"-bound widget ever does. Tapping one widget only ever
-refreshes that one widget, never every placed widget.
-
 ## App features
 
-The app mirrors the widget's own tab-per-location model, plus more detail:
-
-- **Other locations**: tap **+** in the tab strip, search a city name or
-  ZIP code (Android's on-device Geocoder — no key, no second API), and pick
-  a match to add it as its own tab. Each tab keeps its own independently
-  cached weather and its own independent refresh.
+- **Tabs, one per location**: "Current" (GPS) is always the default, first
+  tab. Tap **+** to search a city name or ZIP code (Android's on-device
+  Geocoder — no key, no second API) and add a match as its own tab. Each
+  tab keeps its own independently cached weather and its own independent
+  refresh.
 - **Huge, outlined, auto-sizing temperature** — single-digit readings render
   as large as the screen allows; a double-digit (or negative) reading
   shrinks itself down just enough to keep fitting the width, via Android's
@@ -39,6 +28,17 @@ The app mirrors the widget's own tab-per-location model, plus more detail:
   each row, with a thin divider between rows.
 - **Pull down to refresh** — no separate Refresh button; swipe down on any
   tab to fetch that tab's location.
+
+## Each widget can watch a different location
+
+Dragging a new widget onto the home screen shows a config screen first —
+pick **Current** (GPS) or any city already added as a tab in the app above.
+Each widget instance remembers its own choice independently
+(`WidgetLocationBinding`, keyed per widget id), reusing the same
+per-location cache the app's tabs populate. A widget bound to a searched
+city needs no location permission at all — only a "Current"-bound widget
+ever does. Tapping one widget only ever refreshes that one widget, never
+every placed widget.
 
 ## Weather data: Open-Meteo
 
