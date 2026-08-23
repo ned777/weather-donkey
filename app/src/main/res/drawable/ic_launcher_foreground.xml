@@ -8,13 +8,13 @@
          condition icons) — big ears are the one exaggerated feature that reads as "donkey"
          at a glance, everything else stays simple and geometric. -->
 
-    <!-- Scaled to 70% around the mascot's own bounding-box center so it sits smaller
-         and centered against the yellow adaptive-icon background. -->
+    <!-- Scaled to 60% around the mascot's own bounding-box center so it sits smaller
+         and centered against the adaptive-icon background. -->
     <group
         android:pivotX="58.5"
         android:pivotY="48.5"
-        android:scaleX="0.7"
-        android:scaleY="0.7">
+        android:scaleX="0.6"
+        android:scaleY="0.6">
         <!-- Tail + tuft. -->
         <path android:fillColor="#00E0B8" android:pathData="M20,50 L26,50 L26,64 L20,64 Z" />
         <path android:fillColor="#00E0B8" android:pathData="M23,66 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
