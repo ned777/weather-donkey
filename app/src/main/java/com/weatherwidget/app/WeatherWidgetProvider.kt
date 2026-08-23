@@ -272,7 +272,8 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val halfColumnPx = (fullWidthPx / 2f - dpToPx(context, 4)).coerceAtLeast(0f)
 
             val tempMaxSp = if (tier == WidgetSizeTier.FULL) 56f else 30f
-            setSp(views, R.id.tempText, fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true))
+            val tempSp = fitWidthSp(context, tempStr, halfColumnPx, tempMaxSp, tempMaxSp * 0.45f, bold = true)
+            setSp(context, views, R.id.tempText, tempSp)
 
             // Day label and condition word (forecastLabelSp) is computed up front — at
             // FULL tier, "TODAY" and the city name both match it exactly (by request),
@@ -293,40 +294,84 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             } else {
                 fitWidthSp(context, todayLabel, halfColumnPx, 11f, 9f, bold = true)
             }
-            setSp(views, R.id.todayLabelText, todaySp)
-            setSp(views, R.id.cityText, todaySp)
+            setSp(context, views, R.id.todayLabelText, todaySp)
+            setSp(context, views, R.id.cityText, todaySp)
 
             // conditionText stays visible at every size (it's the only thing telling you
             // sunny/cloudy/rainy/etc. now that there's no icon) — just smaller when tight.
-            setSp(views, R.id.conditionText, fitWidthSp(context, conditionStr, halfColumnPx, if (tier == WidgetSizeTier.FULL) 14f else 11f, 8f, bold = true))
+            val conditionSp = fitWidthSp(context, conditionStr, halfColumnPx, if (tier == WidgetSizeTier.FULL) 14f else 11f, 8f, bold = true)
+            setSp(context, views, R.id.conditionText, conditionSp)
 
             if (tier == WidgetSizeTier.FULL) {
-                setSp(views, R.id.todayHighLowText, fitWidthSp(context, todayHighLowStr, halfColumnPx, 14f, 10f, bold = true))
-                setSp(views, R.id.todayRainText, fitWidthSp(context, todayRainStr, halfColumnPx, 12f, 9f, bold = false))
-                setSp(views, R.id.sunriseText, fitWidthSp(context, sunriseStr, halfColumnPx, 13f, 10f, bold = false))
-                setSp(views, R.id.sunsetText, fitWidthSp(context, sunsetStr, halfColumnPx, 13f, 10f, bold = false))
+                val todayHighLowSp = fitWidthSp(context, todayHighLowStr, halfColumnPx, 14f, 10f, bold = true)
+                val todayRainSp = fitWidthSp(context, todayRainStr, halfColumnPx, 12f, 9f, bold = false)
+                val sunriseSp = fitWidthSp(context, sunriseStr, halfColumnPx, 13f, 10f, bold = false)
+                val sunsetSp = fitWidthSp(context, sunsetStr, halfColumnPx, 13f, 10f, bold = false)
+                setSp(context, views, R.id.todayHighLowText, todayHighLowSp)
+                setSp(context, views, R.id.todayRainText, todayRainSp)
+                setSp(context, views, R.id.sunriseText, sunriseSp)
+                setSp(context, views, R.id.sunsetText, sunsetSp)
 
                 // Both forecast cells use the smaller of the two needed sizes, so they stay
                 // visually matched instead of one day's number being bigger than the other's.
-                val forecastHighLowSp = minOf(
+                var forecastHighLowSp = minOf(
                     fitWidthSp(context, forecast1HighLow, halfColumnPx, 13f, 9f, bold = false),
                     fitWidthSp(context, forecast2HighLow, halfColumnPx, 13f, 9f, bold = false)
                 )
-                setSp(views, R.id.forecast1HighLow, forecastHighLowSp)
-                setSp(views, R.id.forecast2HighLow, forecastHighLowSp)
-                setSp(views, R.id.forecast1Day, forecastLabelSp)
-                setSp(views, R.id.forecast2Day, forecastLabelSp)
-                setSp(views, R.id.forecast1Condition, forecastLabelSp)
-                setSp(views, R.id.forecast2Condition, forecastLabelSp)
-
-                val forecastRainSp = minOf(
+                var finalForecastLabelSp = forecastLabelSp
+                var forecastRainSp = minOf(
                     fitWidthSp(context, forecast1Rain, halfColumnPx, 11f, 8f, bold = false),
                     fitWidthSp(context, forecast2Rain, halfColumnPx, 11f, 8f, bold = false)
                 )
-                setSp(views, R.id.forecast1Rain, forecastRainSp)
-                setSp(views, R.id.forecast2Rain, forecastRainSp)
+
+                // Width-fitting alone isn't enough — the forecast cell stacks FOUR lines
+                // (day/high-low/condition/rain) inside forecastRow's fixed, weighted height.
+                // Nothing had ever checked whether that stack's total height actually fits,
+                // so the last line (rain) could get silently clipped by the parent even
+                // though each line individually fit its column's width. Measure the real
+                // vertical budget (total height minus padding, the top row, and every
+                // margin/line around it) and shrink the forecast text uniformly if the
+                // stack is taller than what's actually left for it.
+                val cityHeightPx = textHeightPx(context, todaySp, bold = true)
+                val leftColHeightPx = textHeightPx(context, tempSp, bold = true) +
+                    textHeightPx(context, todayHighLowSp, bold = true) +
+                    textHeightPx(context, todayRainSp, bold = false)
+                val rightColHeightPx = textHeightPx(context, todaySp, bold = true) +
+                    textHeightPx(context, conditionSp, bold = true) +
+                    textHeightPx(context, sunriseSp, bold = false) +
+                    textHeightPx(context, sunsetSp, bold = false)
+                val topRowHeightPx = maxOf(leftColHeightPx, rightColHeightPx)
+                val updatedHeightPx = textHeightPx(context, 10f, bold = false)
+                val totalHeightPx = dpToPx(context, minHeightDp).toFloat()
+
+                val forecastAvailableHeightPx = (
+                    totalHeightPx - 2 * paddingPx - cityHeightPx -
+                        dpToPx(context, 2) - topRowHeightPx -
+                        dpToPx(context, 8) - dpToPx(context, 4) - updatedHeightPx
+                    ).coerceAtLeast(0f)
+
+                val neededStackHeightPx = textHeightPx(context, finalForecastLabelSp, bold = true) +
+                    textHeightPx(context, forecastHighLowSp, bold = false) +
+                    textHeightPx(context, finalForecastLabelSp, bold = false) +
+                    textHeightPx(context, forecastRainSp, bold = false)
+
+                if (neededStackHeightPx > forecastAvailableHeightPx && neededStackHeightPx > 0f) {
+                    val scale = forecastAvailableHeightPx / neededStackHeightPx
+                    finalForecastLabelSp = (finalForecastLabelSp * scale).coerceAtLeast(7f)
+                    forecastHighLowSp = (forecastHighLowSp * scale).coerceAtLeast(7f)
+                    forecastRainSp = (forecastRainSp * scale).coerceAtLeast(7f)
+                }
+
+                setSp(context, views, R.id.forecast1HighLow, forecastHighLowSp)
+                setSp(context, views, R.id.forecast2HighLow, forecastHighLowSp)
+                setSp(context, views, R.id.forecast1Day, finalForecastLabelSp)
+                setSp(context, views, R.id.forecast2Day, finalForecastLabelSp)
+                setSp(context, views, R.id.forecast1Condition, finalForecastLabelSp)
+                setSp(context, views, R.id.forecast2Condition, finalForecastLabelSp)
+                setSp(context, views, R.id.forecast1Rain, forecastRainSp)
+                setSp(context, views, R.id.forecast2Rain, forecastRainSp)
             }
-            setSp(views, R.id.updatedText, 10f)
+            setSp(context, views, R.id.updatedText, 10f)
 
             views.setViewVisibility(R.id.todayHighLowText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.todayRainText, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
@@ -334,8 +379,19 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             views.setViewVisibility(R.id.forecastRow, if (tier == WidgetSizeTier.FULL) View.VISIBLE else View.GONE)
         }
 
-        private fun setSp(views: RemoteViews, viewId: Int, sizeSp: Float) {
-            views.setTextViewTextSize(viewId, TypedValue.COMPLEX_UNIT_SP, sizeSp)
+        // RemoteViews are actually inflated and drawn by the HOST LAUNCHER process, not
+        // this app's — and "sp" is a live unit that gets re-resolved against whatever the
+        // system font scale is AT DRAW TIME, even for a frame that was already pushed and
+        // never touched again. That means a widget already on the home screen can go from
+        // "fits fine" to "text cut off" the moment the user changes Settings > Display >
+        // Font size, with no tap or refresh involved at all. Setting the size in raw PIXELS
+        // instead (COMPLEX_UNIT_PX) freezes it: every render here already measures against
+        // the CURRENT font scale (spToPx below reads it via displayMetrics), so converting
+        // that fitted result to px up front locks in a size immune to any font-scale change
+        // that happens later — the next tap/refresh will simply recompute fresh against
+        // whatever the scale is by then.
+        private fun setSp(context: Context, views: RemoteViews, viewId: Int, sizeSp: Float) {
+            views.setTextViewTextSize(viewId, TypedValue.COMPLEX_UNIT_PX, spToPx(context, sizeSp))
         }
 
         private fun dpToPx(context: Context, dp: Int): Int =
@@ -351,6 +407,18 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 textSize = spToPx(context, sizeSp)
             }
             return paint.measureText(text)
+        }
+
+        // Ascent is negative in Android's convention, so descent - ascent is the font's
+        // full cap-to-descender line height in px — used to budget vertical space the same
+        // way textWidthPx budgets horizontal space.
+        private fun textHeightPx(context: Context, sizeSp: Float, bold: Boolean): Float {
+            val paint = Paint().apply {
+                typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+                textSize = spToPx(context, sizeSp)
+            }
+            val metrics = paint.fontMetrics
+            return metrics.descent - metrics.ascent
         }
 
         // Shrinks (never grows) sizeSp so `text` renders within maxWidthPx at that size.
