@@ -12,7 +12,7 @@
     <color name="widget_bg">#0B0B10</color>
 
     <!-- Slightly lighter dark grey, just for the launcher adaptive-icon background. -->
-    <color name="icon_bg">#15151B</color>
+    <color name="icon_bg">#0E0E12</color>
 
     <color name="retro_yellow">#FFD400</color>
     <color name="retro_cyan">#00D9FF</color>
