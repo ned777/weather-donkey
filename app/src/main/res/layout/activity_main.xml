@@ -41,10 +41,6 @@
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.1"
-                android:shadowColor="@color/retro_yellow"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="12"
                 android:layout_marginBottom="4dp" />
 
             <TextView
@@ -137,10 +133,6 @@
                 android:textColor="@color/retro_cyan"
                 android:textSize="200sp"
                 android:textStyle="bold"
-                android:shadowColor="@color/retro_cyan"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="24"
                 android:text="--°" />
 
             <TextView

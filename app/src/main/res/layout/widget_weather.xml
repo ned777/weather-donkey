@@ -73,10 +73,6 @@
                 android:textColor="@color/retro_cyan"
                 android:textSize="52sp"
                 android:textStyle="bold"
-                android:shadowColor="@color/retro_cyan"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="14"
                 android:text="--°" />
 
             <TextView
