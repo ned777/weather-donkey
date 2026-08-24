@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   The widget's background: a true-black (not the app's own near-black
-  @color/widget_bg) card with a crisp 4dp teal outline, matching the rest of
+  @color/widget_bg) card with a crisp 2dp teal outline, matching the rest of
   the widget family (today-widget, vehicle-maintenance) — pitch black is
   specifically a widget thing, same as today-widget's date/month widgets.
 -->
@@ -15,7 +15,7 @@
     <item>
         <shape android:shape="rectangle">
             <stroke
-                android:width="4dp"
+                android:width="2dp"
                 android:color="@color/retro_teal" />
             <corners android:radius="@dimen/widget_corner_radius" />
         </shape>
