@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Shared background for the widget and app: a flat black card with a crisp
-  2dp yellow retro outline. Used as android:background on each root layout.
+  The widget's background: a true-black (not the app's own near-black
+  @color/widget_bg) card with a crisp 4dp teal outline, matching the rest of
+  the widget family (today-widget, vehicle-maintenance) — pitch black is
+  specifically a widget thing, same as today-widget's date/month widgets.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/widget_bg" />
+            <solid android:color="@color/black" />
             <corners android:radius="@dimen/widget_corner_radius" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <stroke
-                android:width="2dp"
-                android:color="@color/widget_border" />
+                android:width="4dp"
+                android:color="@color/retro_teal" />
             <corners android:radius="@dimen/widget_corner_radius" />
         </shape>
     </item>
