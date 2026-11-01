@@ -92,7 +92,9 @@ wakes this widget on a timer — the only thing that ever triggers a location
 fix + network fetch is your own tap (`WeatherWidgetProvider.ACTION_REFRESH`).
 The app follows the same rule on every tab: opening it, resuming it, or
 switching tabs never fetches on its own — only swiping down to refresh (or
-granting permission for the first time, on the Current tab) does.
+granting permission for the first time, on the Current tab) does. The one
+exception is a location whose saved data predates the hourly forecast, which
+fetches once by itself to fill that in.
 
 ## Project structure
 

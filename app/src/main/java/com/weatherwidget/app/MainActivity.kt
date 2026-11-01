@@ -35,8 +35,9 @@ import kotlin.math.abs
  * widget applies to every tab: onCreate/tab-switch only ever render whatever
  * that location has cached — nothing is fetched automatically on launch,
  * resume, or switching tabs. The only ways to trigger a fetch are swiping
- * down to refresh, or granting location permission for the first time
- * (itself an explicit tap).
+ * down to refresh, granting location permission for the first time (itself
+ * an explicit tap), or showing a location whose cached snapshot predates the
+ * hourly strip (a one-time catch-up, see fetchMissingHourlyOnce).
  */
 // `class MainActivity : AppCompatActivity()` — an Activity is Android's term for
 // "one full screen the user can be looking at." AppCompatActivity is the standard
@@ -84,6 +85,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fahrenheitInput: EditText
     private lateinit var celsiusInput: EditText
     private lateinit var converterSection: View
+
+    // Locations already given their one catch-up fetch this launch, so a fetch that comes
+    // back with no hourly data can't re-trigger itself through renderFromCache().
+    private val hourlyCatchUpAttempted = mutableSetOf<String>()
 
     private var savedLocations: List<SavedLocation> = emptyList()
     private var activeLocationId: String = WeatherCache.CURRENT_LOCATION_ID
@@ -367,6 +372,7 @@ class MainActivity : AppCompatActivity() {
         if (snapshot != null) {
             render(snapshot)
             updatedText.text = WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)
+            if (snapshot.hourly.isEmpty()) fetchMissingHourlyOnce(id, isCurrentTab && !hasPermission)
         } else {
             clearWeatherFieldsToPlaceholder()
             hourlyHeader.visibility = View.GONE
@@ -379,6 +385,14 @@ class MainActivity : AppCompatActivity() {
                 else -> getString(R.string.app_swipe_to_load)
             }
         }
+    }
+
+    // A snapshot saved before the hourly strip existed has nothing to fill it with — fetch
+    // once so that location doesn't need a manual swipe just to catch up. Never prompts
+    // for location permission on its own; that stays behind an explicit tap.
+    private fun fetchMissingHourlyOnce(locationId: String, needsPermission: Boolean) {
+        if (needsPermission || !hourlyCatchUpAttempted.add(locationId)) return
+        startRefresh()
     }
 
     // So switching to a tab with nothing cached yet doesn't keep showing the
