@@ -24,6 +24,9 @@ periodic timer, no cloud relay of your own.**
 - **°F / °C toggle** (for the weather display) — a pure display switch.
   Flipping it reformats whatever's already cached instantly; it never
   triggers a new fetch.
+- **12-hour forecast** — a sideways-scrolling strip of the next 12 hours,
+  each with its time, condition icon, temperature, and rain chance. It's
+  part of the same fetch as everything else, so it updates on every refresh.
 - **5-day forecast** — today's high/low plus the next 5 days, each with its
   own condition and a flat vector icon (`res/drawable/ic_weather_*.xml`) —
   no emoji, plain solid-color shapes in the app's own retro palette. Rain
@@ -98,7 +101,7 @@ app/src/main/java/com/weatherwidget/app/
   WeatherWidgetProvider.kt     — AppWidgetProvider: tap-to-refresh, fit-to-size rendering
   WeatherWidgetConfigActivity.kt — per-widget location picker, shown when adding a widget
   WidgetLocationBinding.kt        — SharedPreferences: which location each widget id watches
-  MainActivity.kt                   — tabs, search dialog, unit toggle, 5-day forecast, pull-to-refresh
+  MainActivity.kt                   — tabs, search dialog, unit toggle, 12-hour and 5-day forecasts, pull-to-refresh
   OutlinedTextView.kt                — hollow, stroke-only "outlined" TextView, used for the app's temp number
   LocationStore.kt                    — SharedPreferences-backed list of searched/added cities
   LocationHelper.kt                    — plain android.location.LocationManager fix (no Play Services)

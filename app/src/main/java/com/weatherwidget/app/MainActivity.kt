@@ -76,6 +76,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var updatedText: TextView
     private lateinit var grantPermissionButton: Button
     private lateinit var removeLocationButton: TextView
+    private lateinit var hourlyHeader: TextView
+    private lateinit var hourlyScroll: View
+    private lateinit var hourlyContainer: LinearLayout
     private lateinit var forecastHeader: TextView
     private lateinit var forecastContainer: LinearLayout
     private lateinit var fahrenheitInput: EditText
@@ -89,15 +92,16 @@ class MainActivity : AppCompatActivity() {
     // set right before/after a programmatic setText() on the OTHER box.
     private var isConvertingTemp = false
 
-    // Set on every ACTION_DOWN — whether THIS gesture started inside the converter, so a
-    // swipe there never changes tabs (the converter "stays still", per request) while a
-    // swipe starting anywhere else on the weather content does.
-    private var gestureStartedInConverter = false
+    // Set on every ACTION_DOWN — whether THIS gesture started inside the converter or the
+    // hourly strip, so a swipe there never changes tabs (the converter "stays still", per
+    // request, and the strip needs that sideways swipe to scroll itself) while a swipe
+    // starting anywhere else on the weather content does.
+    private var gestureBlocksTabSwipe = false
 
     private val tabSwipeDetector by lazy {
         GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-                if (gestureStartedInConverter || e1 == null) return false
+                if (gestureBlocksTabSwipe || e1 == null) return false
                 val diffX = e2.x - e1.x
                 val diffY = e2.y - e1.y
                 // Mostly horizontal, and a deliberate flick — not an incidental wobble
@@ -160,6 +164,9 @@ class MainActivity : AppCompatActivity() {
         updatedText = findViewById(R.id.updatedText)
         grantPermissionButton = findViewById(R.id.grantPermissionButton)
         removeLocationButton = findViewById(R.id.removeLocationButton)
+        hourlyHeader = findViewById(R.id.hourlyHeader)
+        hourlyScroll = findViewById(R.id.hourlyScroll)
+        hourlyContainer = findViewById(R.id.hourlyContainer)
         forecastHeader = findViewById(R.id.forecastHeader)
         forecastContainer = findViewById(R.id.forecastContainer)
         fahrenheitInput = findViewById(R.id.fahrenheitInput)
@@ -186,10 +193,11 @@ class MainActivity : AppCompatActivity() {
     // Observes every touch the Activity sees (without consuming it — normal scrolling,
     // button taps, and EditText focus/typing all still work exactly as before) purely to
     // feed tabSwipeDetector's fling detection and to remember whether THIS gesture started
-    // inside the converter.
+    // inside the converter or the hourly strip.
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (ev.action == MotionEvent.ACTION_DOWN) {
-            gestureStartedInConverter = isPointInsideView(ev.rawX, ev.rawY, converterSection)
+            gestureBlocksTabSwipe = isPointInsideView(ev.rawX, ev.rawY, converterSection) ||
+                isPointInsideView(ev.rawX, ev.rawY, hourlyScroll)
         }
         tabSwipeDetector.onTouchEvent(ev)
         return super.dispatchTouchEvent(ev)
@@ -361,6 +369,9 @@ class MainActivity : AppCompatActivity() {
             updatedText.text = WeatherFormat.lastUpdatedTimestamp(snapshot.fetchedAt)
         } else {
             clearWeatherFieldsToPlaceholder()
+            hourlyHeader.visibility = View.GONE
+            hourlyScroll.visibility = View.GONE
+            hourlyContainer.removeAllViews()
             forecastHeader.visibility = View.GONE
             forecastContainer.removeAllViews()
             updatedText.text = when {
@@ -448,6 +459,7 @@ class MainActivity : AppCompatActivity() {
         conditionText.text = condition.label
         sunriseText.text = "↑ Sunrise ${WeatherFormat.clockTime(snapshot.sunrise)}"
         sunsetText.text = "↓ Sunset ${WeatherFormat.clockTime(snapshot.sunset)}"
+        populateHourly(snapshot.hourly, fahrenheit)
         populateForecast(snapshot.forecast, fahrenheit)
     }
 
@@ -473,6 +485,22 @@ class MainActivity : AppCompatActivity() {
             TEMP_MAX_SP
         }
         tempText.setTextSize(TypedValue.COMPLEX_UNIT_SP, fitSp)
+    }
+
+    private fun populateHourly(hourly: List<HourlyForecast>, fahrenheit: Boolean) {
+        hourlyContainer.removeAllViews()
+        val visibility = if (hourly.isEmpty()) View.GONE else View.VISIBLE
+        hourlyHeader.visibility = visibility
+        hourlyScroll.visibility = visibility
+        val inflater = LayoutInflater.from(this)
+        hourly.forEach { hour ->
+            val cell = inflater.inflate(R.layout.item_forecast_hour, hourlyContainer, false)
+            cell.findViewById<TextView>(R.id.hourLabel).text = WeatherFormat.clockTime(hour.time)
+            cell.findViewById<ImageView>(R.id.conditionIcon).setImageResource(hour.condition.iconRes(hour.isDay))
+            cell.findViewById<TextView>(R.id.tempText).text = WeatherFormat.tempString(hour.tempF, fahrenheit)
+            cell.findViewById<TextView>(R.id.rainText).text = WeatherFormat.rainChanceString(hour.rainChancePercent)
+            hourlyContainer.addView(cell)
+        }
     }
 
     private fun populateForecast(forecast: List<DailyForecast>, fahrenheit: Boolean) {

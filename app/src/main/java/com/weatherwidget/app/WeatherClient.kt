@@ -21,6 +21,8 @@ import java.util.Locale
 // two WeatherClients, so this skips the usual `WeatherClient().fetchWeather(...)`
 // and lets callers just write `WeatherClient.fetchWeather(...)` directly.
 object WeatherClient {
+    private const val HOURLY_FORECAST_COUNT = 12
+
     private val dayLabelFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
 
     // The `: WeatherSnapshot?` return type — with a `?` — means this function can
@@ -34,7 +36,11 @@ object WeatherClient {
                     "?latitude=$lat&longitude=$lon" +
                     "&current=temperature_2m,weather_code,is_day,wind_speed_10m" +
                     "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max,precipitation_probability_max" +
+                    "&hourly=temperature_2m,weather_code,is_day,wind_speed_10m,precipitation_probability" +
                     "&forecast_days=6" + // today + the next 5 days
+                    // The hourly list starts at the hour already in progress, which
+                    // parseResponse drops — one extra leaves a full 12 ahead of now.
+                    "&forecast_hours=${HOURLY_FORECAST_COUNT + 1}" +
                     "&temperature_unit=fahrenheit" +
                     "&wind_speed_unit=mph" +
                     "&timezone=auto"
@@ -66,6 +72,7 @@ object WeatherClient {
         val json = JSONObject(body)
         val current = json.optJSONObject("current") ?: return null
         val daily = json.optJSONObject("daily") ?: return null
+        val hourly = json.optJSONObject("hourly") ?: return null
 
         val dates = daily.optJSONArray("time") ?: return null
         val codes = daily.optJSONArray("weather_code") ?: return null
@@ -77,6 +84,13 @@ object WeatherClient {
         val rainChances = daily.optJSONArray("precipitation_probability_max") ?: return null
         if (dates.length() == 0) return null
 
+        val hourTimes = hourly.optJSONArray("time") ?: return null
+        val hourTemps = hourly.optJSONArray("temperature_2m") ?: return null
+        val hourCodes = hourly.optJSONArray("weather_code") ?: return null
+        val hourIsDay = hourly.optJSONArray("is_day") ?: return null
+        val hourWinds = hourly.optJSONArray("wind_speed_10m") ?: return null
+        val hourRainChances = hourly.optJSONArray("precipitation_probability") ?: return null
+
         val forecast = (1 until dates.length()).map { i ->
             DailyForecast(
                 dateLabel = dayLabel(dates.optString(i)),
@@ -87,6 +101,23 @@ object WeatherClient {
                 rainChancePercent = rainChances.optInt(i)
             )
         }
+
+        // Both timestamps are the same fixed-width local ISO format, so comparing them as
+        // plain strings also compares them chronologically.
+        val currentTime = current.optString("time")
+        val hourlyForecast = (0 until hourTimes.length())
+            .filter { i -> hourTimes.optString(i) > currentTime }
+            .take(HOURLY_FORECAST_COUNT)
+            .map { i ->
+                HourlyForecast(
+                    time = hourTimes.optString(i),
+                    tempF = hourTemps.optDouble(i),
+                    code = hourCodes.optInt(i),
+                    isDay = hourIsDay.optInt(i, 1) == 1,
+                    windSpeedMph = hourWinds.optDouble(i),
+                    rainChancePercent = hourRainChances.optInt(i)
+                )
+            }
 
         return WeatherSnapshot(
             cityName = null, // filled in separately via reverse geocoding, see MainActivity/WeatherWidgetProvider
@@ -101,6 +132,7 @@ object WeatherClient {
             // Open-Meteo has no "current" precipitation probability field, only daily —
             // today's chance is the same daily max used for today's high/low above.
             todayRainChancePercent = rainChances.optInt(0),
+            hourly = hourlyForecast,
             forecast = forecast,
             fetchedAt = System.currentTimeMillis()
         )

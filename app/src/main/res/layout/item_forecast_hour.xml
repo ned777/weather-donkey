@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One cell of MainActivity's 12-hour strip — inflated and filled in by MainActivity.populateHourly(). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="76dp"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:paddingEnd="8dp">
+
+    <TextView
+        android:id="@+id/hourLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/retro_teal"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:text="--:--" />
+
+    <ImageView
+        android:id="@+id/conditionIcon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:src="@drawable/ic_weather_cloudy" />
+
+    <TextView
+        android:id="@+id/tempText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/retro_white"
+        android:textSize="17sp"
+        android:text="--°" />
+
+    <TextView
+        android:id="@+id/rainText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/retro_white_dim"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:text="Rain: --%" />
+
+</LinearLayout>

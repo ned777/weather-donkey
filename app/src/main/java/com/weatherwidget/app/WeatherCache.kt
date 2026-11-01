@@ -19,9 +19,21 @@ data class DailyForecast(
     val condition: WeatherCondition get() = WeatherCondition.fromCodeAndWind(code, windSpeedMph)
 }
 
+/** One hour's temperature/condition, used for the app's 12-hour strip. `time` is local, e.g. "2026-08-22T14:00". */
+data class HourlyForecast(
+    val time: String,
+    val tempF: Double,
+    val code: Int,
+    val isDay: Boolean,
+    val windSpeedMph: Double,
+    val rainChancePercent: Int
+) {
+    val condition: WeatherCondition get() = WeatherCondition.fromCodeAndWind(code, windSpeedMph)
+}
+
 /**
  * One successful fetch's worth of weather data: today's current reading plus
- * the next 5 days, everything the widget/app need to render.
+ * the next 12 hours and the next 5 days, everything the widget/app need to render.
  */
 data class WeatherSnapshot(
     val cityName: String?,
@@ -34,6 +46,7 @@ data class WeatherSnapshot(
     val todayHighF: Double,
     val todayLowF: Double,
     val todayRainChancePercent: Int,
+    val hourly: List<HourlyForecast>, // next hour .. +12 hours, oldest first
     val forecast: List<DailyForecast>, // tomorrow .. +5 days, oldest first
     val fetchedAt: Long
 ) {
@@ -52,6 +65,19 @@ data class WeatherSnapshot(
         root.put("today_low_f", todayLowF)
         root.put("today_rain_pct", todayRainChancePercent)
         root.put("fetched_at", fetchedAt)
+        val hourlyArray = JSONArray()
+        hourly.forEach { hour ->
+            hourlyArray.put(
+                JSONObject()
+                    .put("time", hour.time)
+                    .put("temp_f", hour.tempF)
+                    .put("code", hour.code)
+                    .put("is_day", hour.isDay)
+                    .put("wind_mph", hour.windSpeedMph)
+                    .put("rain_pct", hour.rainChancePercent)
+            )
+        }
+        root.put("hourly", hourlyArray)
         val forecastArray = JSONArray()
         forecast.forEach { day ->
             forecastArray.put(
@@ -71,6 +97,20 @@ data class WeatherSnapshot(
     companion object {
         fun fromJson(json: String): WeatherSnapshot? = try {
             val root = JSONObject(json)
+            // Snapshots cached before hourly existed have no "hourly" key — they just
+            // show no hourly strip until the next refresh.
+            val hourlyArray = root.optJSONArray("hourly") ?: JSONArray()
+            val hourly = (0 until hourlyArray.length()).map { i ->
+                val hour = hourlyArray.getJSONObject(i)
+                HourlyForecast(
+                    time = hour.getString("time"),
+                    tempF = hour.getDouble("temp_f"),
+                    code = hour.getInt("code"),
+                    isDay = hour.getBoolean("is_day"),
+                    windSpeedMph = hour.optDouble("wind_mph", 0.0),
+                    rainChancePercent = hour.optInt("rain_pct", 0)
+                )
+            }
             val forecastArray = root.optJSONArray("forecast") ?: JSONArray()
             val forecast = (0 until forecastArray.length()).map { i ->
                 val day = forecastArray.getJSONObject(i)
@@ -94,6 +134,7 @@ data class WeatherSnapshot(
                 todayHighF = root.getDouble("today_high_f"),
                 todayLowF = root.getDouble("today_low_f"),
                 todayRainChancePercent = root.optInt("today_rain_pct", 0),
+                hourly = hourly,
                 forecast = forecast,
                 fetchedAt = root.getLong("fetched_at")
             )
