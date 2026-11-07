@@ -263,8 +263,9 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             // the same distance from their respective edges.
             val paddingDp = if (tier == WidgetSizeTier.COMPACT) 10 else 16
             val verticalPaddingDp = if (tier == WidgetSizeTier.COMPACT) 8 else 13
-            val paddingPx = dpToPx(context, paddingDp)
-            val verticalPaddingPx = dpToPx(context, verticalPaddingDp)
+            // + the border inset, so content keeps its distance from the (inset) border.
+            val paddingPx = dpToPx(context, paddingDp + WidgetCorners.BORDER_INSET_DP)
+            val verticalPaddingPx = dpToPx(context, verticalPaddingDp + WidgetCorners.BORDER_INSET_DP)
             views.setViewPadding(R.id.weatherWidgetRoot, paddingPx, verticalPaddingPx, paddingPx, verticalPaddingPx)
 
             // Both the top row's two columns and the forecast row's two cells carry a real
