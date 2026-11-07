@@ -151,6 +151,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         // them and draws the result.
         private fun buildViews(context: Context, manager: AppWidgetManager, id: Int, locationId: String, snapshot: WeatherSnapshot?, statusText: String): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.widget_weather)
+            WidgetCorners.apply(views, R.id.weatherWidgetRoot, manager, id)
             val fahrenheit = UnitPreference.isFahrenheit(context)
 
             val cityStr: String
