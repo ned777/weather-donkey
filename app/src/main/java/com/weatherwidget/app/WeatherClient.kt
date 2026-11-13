@@ -1,5 +1,6 @@
 package com.weatherwidget.app
 
+import android.util.Log
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -22,6 +23,13 @@ import java.util.Locale
 // and lets callers just write `WeatherClient.fetchWeather(...)` directly.
 object WeatherClient {
     private const val HOURLY_FORECAST_COUNT = 12
+    private const val TAG = "WeatherClient"
+
+    // A single attempt fails on any momentary blip (phone just woke up, Wi-Fi ↔ cell
+    // handoff, VPN reconnecting, one-off 5xx from the server), which used to surface as
+    // "Couldn't reach weather service" until the next tap. Retry a couple of times with
+    // a short pause first; the total stays well inside a widget broadcast's time budget.
+    private val RETRY_DELAYS_MS = longArrayOf(1500L, 3000L)
 
     private val dayLabelFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
 
@@ -30,6 +38,27 @@ object WeatherClient {
     // handle both cases (e.g. `WeatherClient.fetchWeather(...) ?: return`) instead of
     // letting a missing result silently crash later, which is what "null safety" means.
     fun fetchWeather(lat: Double, lon: Double): WeatherSnapshot? {
+        for (attempt in 0..RETRY_DELAYS_MS.size) {
+            if (attempt > 0) Thread.sleep(RETRY_DELAYS_MS[attempt - 1])
+            when (val result = fetchOnce(lat, lon)) {
+                is FetchResult.Success -> return result.snapshot
+                is FetchResult.Retryable -> Log.w(TAG, "Attempt ${attempt + 1} failed: ${result.reason}")
+                is FetchResult.Fatal -> {
+                    Log.w(TAG, "Giving up: ${result.reason}")
+                    return null
+                }
+            }
+        }
+        return null
+    }
+
+    private sealed class FetchResult {
+        class Success(val snapshot: WeatherSnapshot) : FetchResult()
+        class Retryable(val reason: String) : FetchResult()
+        class Fatal(val reason: String) : FetchResult()
+    }
+
+    private fun fetchOnce(lat: Double, lon: Double): FetchResult {
         return try {
             val url = URL(
                 "https://api.open-meteo.com/v1/forecast" +
@@ -50,21 +79,29 @@ object WeatherClient {
             // responds), which is exactly why fetchWeather() is always run on a background
             // Thread by its callers, never directly on the UI thread.
             val connection = url.openConnection() as HttpURLConnection
-            connection.connectTimeout = 6000
-            connection.readTimeout = 6000
+            connection.connectTimeout = 8000
+            connection.readTimeout = 8000
 
             try {
-                if (connection.responseCode != 200) return null
-                val body = connection.inputStream.bufferedReader().readText()
-                parseResponse(body)
+                val code = connection.responseCode
+                when {
+                    code == 200 -> {
+                        val body = connection.inputStream.bufferedReader().readText()
+                        parseResponse(body)?.let { FetchResult.Success(it) }
+                            ?: FetchResult.Fatal("unparseable response")
+                    }
+                    // 429 (rate limited) and 5xx are the server's temporary problems.
+                    code == 429 || code >= 500 -> FetchResult.Retryable("HTTP $code")
+                    else -> FetchResult.Fatal("HTTP $code")
+                }
             } finally {
                 connection.disconnect()
             }
         } catch (e: Exception) {
             // No network, DNS failure, malformed response, etc. — from the caller's
             // point of view these all mean the same thing: "couldn't fetch weather
-            // right now", so we don't distinguish which one happened.
-            null
+            // right now" — but it's logged (adb logcat -s WeatherClient) and retried.
+            FetchResult.Retryable("${e.javaClass.simpleName}: ${e.message}")
         }
     }
 
